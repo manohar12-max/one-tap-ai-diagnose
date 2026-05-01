@@ -1,7 +1,7 @@
 "use client"
 
 import { Navbar } from "@/components/Navbar"
-import { PulseInput } from "@/components/patient/PulseInput"
+import { DiagnosisWizard } from "@/components/patient/DiagnosisWizard"
 import { motion } from "framer-motion"
 import { ShieldCheck, Brain, Activity } from "lucide-react"
 
@@ -40,13 +40,13 @@ export default function TriagePage() {
           </motion.p>
         </div>
 
-        {/* Pulse Input Component */}
+        {/* Diagnosis Wizard Component */}
         <motion.div
           initial={{ y: 30, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.2 }}
         >
-          <PulseInput />
+          <DiagnosisWizard />
         </motion.div>
 
         {/* Footer info for confidence */}

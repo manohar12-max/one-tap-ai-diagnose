@@ -19,15 +19,34 @@ import {
 import { Navbar } from "@/components/Navbar"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 import Link from "next/link"
 
 export default function PatientDashboard() {
   const [activeTab, setActiveTab] = useState("overview")
   const [userName, setUserName] = useState("Patient")
 
+  const [history, setHistory] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+
   useEffect(() => {
     const userData = JSON.parse(localStorage.getItem("user") || "{}")
     if (userData.name) setUserName(userData.name)
+    
+    const fetchHistory = async () => {
+      try {
+        const res = await fetch("/api/history")
+        if (res.ok) {
+          const data = await res.json()
+          setHistory(data)
+        }
+      } catch (error) {
+        console.error("Failed to fetch history:", error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchHistory()
   }, [])
 
   const containerVariants = {
@@ -146,31 +165,41 @@ export default function PatientDashboard() {
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {[
-                  { title: "Respiratory Assessment", date: "Oct 12, 2026", result: "Likely Common Cold", severity: "LOW", icon: <Stethoscope /> },
-                  { title: "Chest Pain Analysis", date: "Sep 28, 2026", result: "Cardiac Consultation Recommended", severity: "HIGH", icon: <AlertCircle /> },
-                ].map((item, i) => (
-                  <motion.div key={i} variants={cardVariants} initial="hidden" animate="visible" transition={{ delay: 0.2 + (i*0.1) }}>
-                    <Card className="p-6 bg-card/40 border-border backdrop-blur-xl hover:border-primary/40 transition-all cursor-pointer group">
-                      <div className="flex justify-between items-start mb-6">
-                        <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all duration-300">
-                          {item.icon}
+                {isLoading ? (
+                  [1, 2].map(i => <Card key={i} className="h-48 animate-pulse bg-secondary/20 border-border rounded-3xl" />)
+                ) : history.length > 0 ? (
+                  history.slice(0, 4).map((item, i) => (
+                    <motion.div key={item.id} variants={cardVariants} initial="hidden" animate="visible" transition={{ delay: 0.2 + (i*0.1) }}>
+                      <Card className="p-6 bg-card/40 border-border backdrop-blur-xl hover:border-primary/40 transition-all cursor-pointer group">
+                        <div className="flex justify-between items-start mb-6">
+                          <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all duration-300">
+                            {item.diagnosis?.severity === 'CRITICAL' ? <AlertCircle /> : <Stethoscope />}
+                          </div>
+                          <div className={cn(
+                            "px-3 py-1 rounded-full text-[10px] font-black tracking-widest uppercase border",
+                            item.diagnosis?.severity === 'CRITICAL' ? 'bg-red-500/10 text-red-500 border-red-500/20' : 
+                            item.diagnosis?.severity === 'HIGH' ? 'bg-orange-500/10 text-orange-500 border-orange-500/20' :
+                            'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
+                          )}>
+                            {item.diagnosis?.severity || 'LOW'} SEVERITY
+                          </div>
                         </div>
-                        <div className={`px-3 py-1 rounded-full text-[10px] font-black tracking-widest uppercase ${item.severity === 'HIGH' ? 'bg-red-500/10 text-red-500 border border-red-500/20' : 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'}`}>
-                          {item.severity} SEVERITY
+                        <div className="space-y-1">
+                          <h4 className="font-black text-lg text-foreground line-clamp-1">{item.title}</h4>
+                          <p className="text-sm text-muted-foreground">{new Date(item.createdAt).toLocaleDateString()}</p>
                         </div>
-                      </div>
-                      <div className="space-y-1">
-                        <h4 className="font-black text-lg text-foreground">{item.title}</h4>
-                        <p className="text-sm text-muted-foreground">{item.date}</p>
-                      </div>
-                      <div className="mt-4 pt-4 border-t border-border flex justify-between items-center">
-                        <span className="text-xs font-bold text-primary">{item.result}</span>
-                        <ChevronRight size={16} className="text-muted-foreground group-hover:translate-x-1 transition-all" />
-                      </div>
-                    </Card>
-                  </motion.div>
-                ))}
+                        <div className="mt-4 pt-4 border-t border-border flex justify-between items-center">
+                          <span className="text-xs font-bold text-primary">{item.diagnosis?.specialty}</span>
+                          <ChevronRight size={16} className="text-muted-foreground group-hover:translate-x-1 transition-all" />
+                        </div>
+                      </Card>
+                    </motion.div>
+                  ))
+                ) : (
+                  <div className="col-span-2 p-10 text-center bg-secondary/10 rounded-3xl border border-dashed border-border">
+                    <p className="text-muted-foreground font-medium">No diagnostic history found. Start your first scan!</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
