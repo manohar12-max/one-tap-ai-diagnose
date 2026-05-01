@@ -66,11 +66,11 @@ export function Navbar() {
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60 transition-all duration-300">
-      <div className="container mx-auto px-4 lg:px-8 h-18 flex items-center justify-between py-2">
+      <div className="container mx-auto px-4 lg:px-8 h-12 flex items-center justify-between py-0.5">
         <div className="flex items-center gap-10">
-          <Link href="/" className="flex items-center gap-2 font-black text-2xl text-primary group">
-            <div className="bg-primary text-white p-2 rounded-2xl group-hover:rotate-12 transition-all duration-300 shadow-lg shadow-primary/20">
-              <Activity className="h-6 w-6" />
+          <Link href="/" className="flex items-center gap-2 font-black text-lg text-primary group">
+            <div className="bg-primary text-white p-1 rounded-lg group-hover:rotate-12 transition-all duration-300 shadow-lg shadow-primary/20">
+              <Activity className="h-4 w-4" />
             </div>
             <span className="hidden sm:inline-block tracking-tighter">One Tap AI <span className="text-foreground">Diagnose</span></span>
           </Link>
@@ -103,12 +103,12 @@ export function Navbar() {
         </div>
 
         <div className="flex items-center gap-4">
-           <div className="hidden xl:flex items-center bg-secondary/50 px-4 py-2.5 rounded-2xl border border-border text-muted-foreground w-64 focus-within:w-80 focus-within:ring-2 focus-within:ring-primary/20 transition-all duration-500">
-             <Search size={14} className="mr-3 text-primary" />
+           <div className="hidden xl:flex items-center bg-secondary/50 px-3 py-1.5 rounded-xl border border-border text-muted-foreground w-48 focus-within:w-64 focus-within:ring-2 focus-within:ring-primary/20 transition-all duration-500">
+             <Search size={12} className="mr-2 text-primary" />
              <input 
                type="text" 
                placeholder="Clinical search..." 
-               className="bg-transparent border-none outline-none text-[12px] w-full font-bold placeholder:text-muted-foreground/60"
+               className="bg-transparent border-none outline-none text-[11px] w-full font-bold placeholder:text-muted-foreground/60"
              />
            </div>
            
@@ -116,23 +116,23 @@ export function Navbar() {
              <ModeToggle />
 
              {user ? (
-               <div className="flex items-center gap-2">
-                  <Button variant="ghost" size="icon" className="w-11 h-11 rounded-xl text-muted-foreground hover:bg-secondary/80">
-                    <Bell size={18} />
-                  </Button>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    onClick={handleLogout}
-                    className="w-11 h-11 rounded-xl text-muted-foreground hover:text-red-500 hover:bg-red-500/10 transition-all"
-                    title="Logout"
-                  >
-                    <LogOut size={18} />
-                  </Button>
-                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-black border border-primary/20 cursor-pointer hover:scale-105 transition-transform">
-                    {user.name.charAt(0)}
-                  </div>
-               </div>
+                <div className="flex items-center gap-2">
+                   <Button variant="ghost" size="icon" className="w-8 h-8 rounded-lg text-muted-foreground hover:bg-secondary/80">
+                     <Bell size={14} />
+                   </Button>
+                   <Button 
+                     variant="ghost" 
+                     size="icon" 
+                     onClick={handleLogout}
+                     className="w-8 h-8 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 transition-all"
+                     title="Logout"
+                   >
+                     <LogOut size={14} />
+                   </Button>
+                   <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center text-primary text-[10px] font-black border border-primary/20 cursor-pointer hover:scale-105 transition-transform">
+                     {user.name.charAt(0)}
+                   </div>
+                </div>
              ) : (
                <div className="flex items-center gap-2">
                  <Link href="/login">

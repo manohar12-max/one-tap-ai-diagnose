@@ -10,6 +10,8 @@ async function main() {
     update: {},
     create: {
       email: "john.doe@example.com",
+      mobile: "9999999991",
+      password: "password123",
       name: "John Doe",
       role: "PATIENT",
     },
@@ -20,6 +22,8 @@ async function main() {
     update: {},
     create: {
       email: "jane.smith@example.com",
+      mobile: "9999999992",
+      password: "password123",
       name: "Jane Smith",
       role: "PATIENT",
     },

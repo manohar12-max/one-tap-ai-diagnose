@@ -139,7 +139,7 @@ export function DiagnosisWizard() {
   return (
     <div className="max-w-4xl mx-auto w-full px-4 sm:px-0">
       {/* Progress Stepper */}
-      <div className="flex justify-between items-center mb-12 relative px-4">
+      <div className="flex justify-between items-center mb-8 relative px-4">
         <div className="absolute top-1/2 left-0 w-full h-0.5 bg-border -z-10" />
         <div className="absolute top-1/2 left-0 h-0.5 bg-primary transition-all duration-500 -z-10" 
              style={{ width: `${((step - 1) / 4) * 100}%` }} />
@@ -148,11 +148,11 @@ export function DiagnosisWizard() {
           <div 
             key={s}
             className={cn(
-              "w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all duration-300",
+              "w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all duration-300",
               step >= s ? "bg-primary border-primary text-white shadow-lg shadow-primary/20" : "bg-card border-border text-muted-foreground"
             )}
           >
-            {step > s ? <Check size={18} /> : <span className="text-sm font-bold">{s}</span>}
+            {step > s ? <Check size={14} /> : <span className="text-xs font-bold">{s}</span>}
           </div>
         ))}
       </div>
@@ -165,20 +165,20 @@ export function DiagnosisWizard() {
           exit={{ opacity: 0, x: -20 }}
           transition={{ duration: 0.3 }}
         >
-          <Card className="p-8 bg-card/50 border-border backdrop-blur-xl shadow-2xl rounded-3xl overflow-hidden min-h-[550px] flex flex-col">
+          <Card className="p-6 bg-card/50 border-border backdrop-blur-xl shadow-2xl rounded-2xl overflow-hidden min-h-[500px] flex flex-col">
             
             {/* Step 1: Body Part Selection */}
             {step === 1 && (
-              <div className="space-y-8 flex-1">
-                <div className="space-y-2 text-center md:text-left">
-                  <h3 className="text-3xl font-black tracking-tight text-foreground flex items-center gap-3 justify-center md:justify-start">
-                    <UserIcon className="text-primary" size={32} />
+              <div className="space-y-6 flex-1">
+                <div className="space-y-1.5 text-center md:text-left">
+                  <h3 className="text-2xl font-black tracking-tight text-foreground flex items-center gap-2.5 justify-center md:justify-start">
+                    <UserIcon className="text-primary" size={28} />
                     Where is the issue?
                   </h3>
-                  <p className="text-muted-foreground font-medium">Select the primary area of your concern.</p>
+                  <p className="text-muted-foreground text-sm font-medium">Select the primary area of your concern.</p>
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   {BODY_PARTS.map((part) => (
                     <button
                       key={part.id}
@@ -187,19 +187,19 @@ export function DiagnosisWizard() {
                         nextStep()
                       }}
                       className={cn(
-                        "p-6 rounded-[2rem] border-2 transition-all duration-300 flex flex-col items-center gap-4 group",
+                        "p-5 rounded-[1.5rem] border-2 transition-all duration-300 flex flex-col items-center gap-3 group",
                         selectedBodyPart === part.id
                           ? "bg-primary border-primary text-white shadow-xl shadow-primary/20 scale-105"
                           : "bg-secondary/30 border-transparent hover:border-primary/30 text-foreground hover:scale-105"
                       )}
                     >
                       <div className={cn(
-                        "w-12 h-12 rounded-2xl flex items-center justify-center transition-colors",
+                        "w-10 h-10 rounded-xl flex items-center justify-center transition-colors",
                         selectedBodyPart === part.id ? "bg-white/20" : "bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white"
                       )}>
                         {part.icon}
                       </div>
-                      <span className="text-[10px] font-black uppercase tracking-widest">{part.label}</span>
+                      <span className="text-[9px] font-black uppercase tracking-widest">{part.label}</span>
                     </button>
                   ))}
                 </div>
@@ -208,16 +208,16 @@ export function DiagnosisWizard() {
 
             {/* Step 2: Symptom Checklist */}
             {step === 2 && (
-              <div className="space-y-8 flex-1">
-                <div className="space-y-2">
-                  <h3 className="text-3xl font-black tracking-tight text-foreground flex items-center gap-3">
-                    <Activity className="text-primary" size={32} />
+              <div className="space-y-6 flex-1">
+                <div className="space-y-1.5">
+                  <h3 className="text-2xl font-black tracking-tight text-foreground flex items-center gap-2.5">
+                    <Stomach className="text-primary" size={28} />
                     What are you feeling?
                   </h3>
-                  <p className="text-muted-foreground font-medium">Select symptoms or add your own.</p>
+                  <p className="text-muted-foreground text-sm font-medium">Select symptoms or add your own.</p>
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
                   {/* Predefined symptoms */}
                   {COMMON_SYMPTOMS.map((symptom) => (
                     <button
@@ -282,21 +282,21 @@ export function DiagnosisWizard() {
 
             {/* Step 3: Description & Intensity */}
             {step === 3 && (
-              <div className="space-y-8 flex-1">
-                <div className="space-y-2">
-                  <h3 className="text-3xl font-black tracking-tight text-foreground flex items-center gap-3">
-                    <Brain className="text-primary" size={32} />
-                    Describe your condition
+              <div className="space-y-6 flex-1">
+                <div className="space-y-1.5">
+                  <h3 className="text-2xl font-black tracking-tight text-foreground flex items-center gap-2.5">
+                    <Brain className="text-primary" size={28} />
+                    Describe condition
                   </h3>
-                  <p className="text-muted-foreground font-medium">Tell us more about what's happening in your own words.</p>
+                  <p className="text-muted-foreground text-sm font-medium">Tell us more about what's happening.</p>
                 </div>
 
-                <div className="space-y-6">
+                <div className="space-y-5">
                   <textarea
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    placeholder="E.g. I have a sharp pain in my upper abdomen that started after dinner..."
-                    className="w-full min-h-[160px] bg-secondary/50 border-border rounded-2xl p-6 text-lg resize-none placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/20 transition-all text-foreground"
+                    placeholder="E.g. I have a sharp pain..."
+                    className="w-full min-h-[140px] bg-secondary/50 border-border rounded-xl p-5 text-base resize-none placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/20 transition-all text-foreground"
                   />
 
                   <div className="space-y-4">
@@ -355,23 +355,23 @@ export function DiagnosisWizard() {
                     </div>
                   </div>
 
-                  <div className="space-y-4">
-                    <label className="text-sm font-black uppercase tracking-widest text-muted-foreground">Upload Images (Optional)</label>
-                    <div className="flex flex-wrap gap-4">
-                      <label className="w-24 h-24 rounded-2xl border-2 border-dashed border-border hover:border-primary/50 transition-all flex flex-col items-center justify-center gap-2 cursor-pointer bg-secondary/20 group">
-                        <Camera size={24} className="text-muted-foreground group-hover:text-primary transition-colors" />
-                        <span className="text-[10px] font-bold text-muted-foreground group-hover:text-primary uppercase">Add Photo</span>
+                  <div className="space-y-3">
+                    <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Upload Images (Optional)</label>
+                    <div className="flex flex-wrap gap-3">
+                      <label className="w-20 h-20 rounded-xl border-2 border-dashed border-border hover:border-primary/50 transition-all flex flex-col items-center justify-center gap-1.5 cursor-pointer bg-secondary/20 group">
+                        <Camera size={20} className="text-muted-foreground group-hover:text-primary transition-colors" />
+                        <span className="text-[9px] font-bold text-muted-foreground group-hover:text-primary uppercase">Add Photo</span>
                         <input type="file" multiple accept="image/*" onChange={handleImageUpload} className="hidden" />
                       </label>
 
                       {images.map((img, i) => (
-                        <div key={i} className="relative w-24 h-24 rounded-2xl overflow-hidden group">
+                        <div key={i} className="relative w-20 h-20 rounded-xl overflow-hidden group">
                           <img src={img} alt="upload" className="w-full h-full object-cover" />
                           <button 
                             onClick={() => removeImage(i)}
                             className="absolute top-1 right-1 p-1 bg-red-500 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity"
                           >
-                            <X size={12} />
+                            <X size={10} />
                           </button>
                         </div>
                       ))}
@@ -383,18 +383,18 @@ export function DiagnosisWizard() {
 
             {/* Step 5: Final Review & Submit */}
             {step === 5 && (
-              <div className="space-y-8 flex-1 flex flex-col items-center justify-center text-center">
-                <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-4">
-                  <Stethoscope size={40} />
+              <div className="space-y-6 flex-1 flex flex-col items-center justify-center text-center">
+                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-3">
+                  <Stethoscope size={32} />
                 </div>
-                <div className="space-y-2">
-                  <h3 className="text-3xl font-black tracking-tight text-foreground">Ready for AI Analysis</h3>
-                  <p className="text-muted-foreground font-medium max-w-md mx-auto">
+                <div className="space-y-1.5">
+                  <h3 className="text-2xl font-black tracking-tight text-foreground">Ready for AI Analysis</h3>
+                  <p className="text-muted-foreground text-sm font-medium max-w-sm mx-auto">
                     We've gathered all the necessary information. Our specialist AI will now analyze your symptoms and images.
                   </p>
                 </div>
 
-                <div className="w-full bg-secondary/30 rounded-3xl p-6 text-left space-y-4 border border-border/50">
+                <div className="w-full bg-secondary/30 rounded-2xl p-5 text-left space-y-3 border border-border/50">
                   <div className="flex justify-between items-start">
                     <div>
                       <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Body Part</p>
@@ -405,6 +405,19 @@ export function DiagnosisWizard() {
                       <div className="flex flex-wrap gap-1">
                         {selectedSymptoms.map(s => <Badge key={s} variant="secondary" className="text-[9px]">{s}</Badge>)}
                       </div>
+                      
+                      {images.length > 0 && (
+                        <div className="mt-4">
+                          <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Attached Images</p>
+                          <div className="flex gap-2">
+                            {images.map((img, i) => (
+                              <div key={i} className="w-10 h-10 rounded-lg overflow-hidden border border-border shadow-sm">
+                                <img src={img} alt="attachment" className="w-full h-full object-cover" />
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                     <div className="text-right">
                       <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Intensity</p>

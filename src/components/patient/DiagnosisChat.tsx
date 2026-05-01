@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, useMemo } from "react"
 import { useChat } from "@ai-sdk/react"
 import { DefaultChatTransport } from "ai"
 import { motion, AnimatePresence } from "framer-motion"
@@ -18,35 +18,62 @@ import {
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
 
 interface Props {
   initialDiagnosis: any
   sessionId: string | null
-  onBack: () => void
+  existingMessages?: any[]
+  onBack?: () => void
+  backUrl?: string
 }
 
-export function DiagnosisChat({ initialDiagnosis, sessionId, onBack }: Props) {
+export function DiagnosisChat({ initialDiagnosis, sessionId, existingMessages = [], onBack, backUrl }: Props) {
   const [input, setInput] = useState("")
   const scrollRef = useRef<HTMLDivElement>(null)
+  const router = useRouter()
   
+  // Memoize initial messages to prevent state reset on re-render during streaming
+  const initialMessages = useMemo(() => {
+    const mapped = existingMessages.map(m => ({
+      id: m.id,
+      role: m.role as "user" | "assistant" | "system",
+      parts: [{ type: "text" as const, text: m.content }],
+    }))
+
+    return [
+      {
+        id: "diagnosis-context",
+        role: "system" as const,
+        parts: [{ type: "text" as const, text: `CONTEXT: The patient has received a preliminary diagnosis for: ${initialDiagnosis.summary}. Specialty: ${initialDiagnosis.specialty}. Severity: ${initialDiagnosis.severity}. Explanation: ${initialDiagnosis.explanation}. Possible Conditions: ${initialDiagnosis.possibleConditions?.join(", ")}.` }],
+      },
+      ...mapped.length > 0 ? mapped : [
+        {
+          id: "welcome",
+          role: "assistant" as const,
+          parts: [{ type: "text" as const, text: `Hello! I'm your One-Tap Clinical Companion. I see you've just received your clinical summary for ${initialDiagnosis.summary}. I'm here to discuss this with you, answer any questions you might have, or just provide some comfort. How are you feeling about the assessment?` }],
+        }
+      ]
+    ]
+  }, [existingMessages, initialDiagnosis])
+
   const { messages, sendMessage, status } = useChat({
+    id: sessionId || "chat",
     transport: new DefaultChatTransport({ 
       api: "/api/chat",
       body: { chatSessionId: sessionId },
     }),
-    messages: [
-      {
-        id: "diagnosis-context",
-        role: "system",
-        parts: [{ type: "text", text: `CONTEXT: The patient has received a preliminary diagnosis for: ${initialDiagnosis.summary}. Specialty: ${initialDiagnosis.specialty}. Severity: ${initialDiagnosis.severity}. Explanation: ${initialDiagnosis.explanation}. Possible Conditions: ${initialDiagnosis.possibleConditions?.join(", ")}.` }],
-      },
-      {
-        id: "welcome",
-        role: "assistant",
-        parts: [{ type: "text", text: `Hello! I'm your One-Tap Clinical Companion. I see you've just received your clinical summary for ${initialDiagnosis.summary}. I'm here to discuss this with you, answer any questions you might have, or just provide some comfort. How are you feeling about the assessment?` }],
-      }
-    ],
+    messages: initialMessages,
   })
+
+  useEffect(() => {
+    console.log("Messages updated:", messages.length, "Status:", status)
+    if (messages.length > 0) {
+      const last = messages[messages.length - 1]
+      console.log("Last message:", last.role, last.parts?.[0]?.text?.substring(0, 20))
+    }
+  }, [messages, status])
   
   const isLoading = status === "streaming" || status === "submitted"
 
@@ -67,11 +94,16 @@ export function DiagnosisChat({ initialDiagnosis, sessionId, onBack }: Props) {
   }
 
   const getMessageText = (m: any) => {
-    if (m.content) return m.content
-    if (m.parts) {
+    // Some versions or states might have content directly
+    if (typeof m.content === 'string' && m.content.length > 0) return m.content
+    
+    if (m.parts && Array.isArray(m.parts)) {
       return m.parts
-        .filter((p: any) => p.type === "text")
-        .map((p: any) => p.text)
+        .map((p: any) => {
+          if (typeof p === 'string') return p
+          if (p.type === "text" || p.text) return p.text || ""
+          return ""
+        })
         .join("")
     }
     return ""
@@ -84,24 +116,33 @@ export function DiagnosisChat({ initialDiagnosis, sessionId, onBack }: Props) {
   }, [messages])
 
   return (
-    <div className="max-w-4xl mx-auto h-[80vh] flex flex-col gap-6 px-4 pb-10">
+    <div className="max-w-4xl mx-auto h-[92vh] flex flex-col gap-6 px-4 pb-10">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <Button variant="ghost" onClick={onBack} className="gap-2 font-bold text-muted-foreground hover:text-primary">
-          <ArrowLeft size={18} />
-          Back to Analysis
-        </Button>
+        {backUrl ? (
+          <Button variant="ghost" asChild className="gap-2 font-bold text-muted-foreground hover:text-primary">
+            <Link href={backUrl}>
+              <ArrowLeft size={18} />
+              Back to Analysis
+            </Link>
+          </Button>
+        ) : (
+          <Button variant="ghost" onClick={onBack} className="gap-2 font-bold text-muted-foreground hover:text-primary">
+            <ArrowLeft size={18} />
+            Back to Analysis
+          </Button>
+        )}
         <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-[10px] font-black uppercase tracking-widest">
           <ShieldCheck size={14} className="animate-pulse" />
           Secure Consultation Active
         </div>
       </div>
 
-      <Card className="flex-1 bg-card/50 border-border backdrop-blur-xl shadow-2xl rounded-[2rem] overflow-hidden flex flex-col relative">
+      <Card className="flex-1 bg-card/50 border-border backdrop-blur-xl shadow-2xl rounded-[1.5rem] overflow-hidden flex flex-col relative">
         {/* Chat Messages */}
         <div 
           ref={scrollRef}
-          className="flex-1 overflow-y-auto p-6 md:p-10 space-y-8 scroll-smooth"
+          className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 scroll-smooth"
         >
           {messages.filter(m => m.role !== "system").map((m) => (
             <motion.div
@@ -121,7 +162,7 @@ export function DiagnosisChat({ initialDiagnosis, sessionId, onBack }: Props) {
               </div>
               
               <div className={cn(
-                "p-5 rounded-3xl text-sm font-medium leading-relaxed shadow-sm",
+                "p-4 rounded-2xl text-sm font-medium leading-relaxed shadow-sm",
                 (m.role as string) === "user" 
                   ? "bg-primary text-white rounded-tr-none" 
                   : "bg-secondary/50 text-foreground border border-border rounded-tl-none"
@@ -145,31 +186,31 @@ export function DiagnosisChat({ initialDiagnosis, sessionId, onBack }: Props) {
         </div>
 
         {/* Input Area */}
-        <div className="p-6 md:p-8 border-t border-border bg-card/50">
+        <div className="p-4 md:p-6 border-t border-border bg-card/50">
           <form 
             onSubmit={(e) => {
               e.preventDefault()
               handleSubmit(e)
             }}
-            className="flex items-center gap-4 bg-secondary/30 p-2 rounded-[1.5rem] border border-border/50 focus-within:ring-2 focus-within:ring-primary/20 transition-all shadow-inner"
+            className="flex items-center gap-3 bg-secondary/30 p-1.5 rounded-[1.2rem] border border-border/50 focus-within:ring-2 focus-within:ring-primary/20 transition-all shadow-inner"
           >
             <input
               value={input}
               onChange={handleInputChange}
-              placeholder="Ask anything about your diagnosis..."
-              className="flex-1 bg-transparent border-0 outline-none px-4 py-3 text-sm font-bold text-foreground placeholder:text-muted-foreground"
+              placeholder="Ask anything..."
+              className="flex-1 bg-transparent border-0 outline-none px-3 py-2 text-sm font-bold text-foreground placeholder:text-muted-foreground"
             />
             <Button 
               type="submit" 
               disabled={isLoading || !input.trim()}
-              className="w-12 h-12 rounded-2xl bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20 shrink-0"
+              className="w-10 h-10 rounded-xl bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20 shrink-0"
             >
-              {isLoading ? <Loader2 size={20} className="animate-spin" /> : <Send size={20} />}
+              {isLoading ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
             </Button>
           </form>
-          <p className="text-center mt-4 text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center justify-center gap-2">
-            <Sparkles size={12} className="text-primary" />
-            AI Clinical Companion • Warm & Empathetic Logic
+          <p className="text-center mt-3 text-[9px] font-bold text-muted-foreground uppercase tracking-widest flex items-center justify-center gap-2">
+            <Sparkles size={10} className="text-primary" />
+            AI Clinical Companion
           </p>
         </div>
       </Card>

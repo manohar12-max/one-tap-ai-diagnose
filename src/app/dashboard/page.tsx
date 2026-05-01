@@ -73,13 +73,13 @@ export default function PatientDashboard() {
             <motion.h1 
               initial={{ x: -20, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
-              className="text-4xl md:text-5xl font-black tracking-tight text-foreground"
+              className="text-2xl md:text-3xl font-black tracking-tight text-foreground"
             >
               Good morning, <span className="text-primary">{userName.split(' ')[0]}</span>
             </motion.h1>
-            <p className="text-muted-foreground font-medium flex items-center gap-2">
-              <Sparkles size={16} className="text-primary" />
-              AI Clinical Intelligence is active and monitoring.
+            <p className="text-muted-foreground text-sm font-medium flex items-center gap-2">
+              <Sparkles size={14} className="text-primary" />
+              AI Clinical Intelligence active.
             </p>
           </div>
           
@@ -103,33 +103,33 @@ export default function PatientDashboard() {
               animate={{ scale: 1, opacity: 1 }}
               className="relative overflow-hidden group"
             >
-              <Card className="p-1 md:p-1.5 rounded-[3rem] bg-gradient-to-br from-primary via-indigo-600 to-purple-600 border-none shadow-2xl">
-                <div className="bg-slate-950/90 rounded-[2.8rem] p-10 space-y-10 relative overflow-hidden">
+              <Card className="p-1 rounded-[2rem] bg-gradient-to-br from-primary via-indigo-600 to-purple-600 border-none shadow-2xl">
+                <div className="bg-slate-950/90 rounded-[1.8rem] p-8 space-y-8 relative overflow-hidden">
                   {/* Background Decoration */}
-                  <div className="absolute top-0 right-0 w-96 h-96 bg-primary/20 blur-[100px] rounded-full -mr-40 -mt-40 animate-pulse" />
+                  <div className="absolute top-0 right-0 w-80 h-80 bg-primary/20 blur-[100px] rounded-full -mr-32 -mt-32 animate-pulse" />
                   
-                  <div className="flex flex-col md:flex-row items-center justify-between gap-10">
-                    <div className="space-y-6 max-w-lg text-center md:text-left">
-                      <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/20 border border-primary/30 text-primary text-[10px] font-black uppercase tracking-[0.2em]">
-                        <Brain size={14} />
+                  <div className="flex flex-col md:flex-row items-center justify-between gap-8">
+                    <div className="space-y-5 max-w-lg text-center md:text-left">
+                      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/20 border border-primary/30 text-primary text-[9px] font-black uppercase tracking-[0.2em]">
+                        <Brain size={12} />
                         Next-Gen Diagnosis
                       </div>
-                      <h2 className="text-4xl md:text-5xl font-black text-white leading-tight">
+                      <h2 className="text-2xl md:text-3xl font-black text-white leading-tight">
                         Start Your <span className="text-primary italic">Deep Scan</span>
                       </h2>
-                      <p className="text-slate-400 text-lg leading-relaxed">
-                        Analyze symptoms, upload clinical images, or use our specialized skin condition scanner for instant results.
+                      <p className="text-slate-400 text-base leading-relaxed">
+                        Analyze symptoms, upload images, or use our specialized skin condition scanner for instant results.
                       </p>
                       
-                      <div className="flex flex-wrap gap-4 justify-center md:justify-start">
+                      <div className="flex flex-wrap gap-3 justify-center md:justify-start">
                         <Link href="/diagnose">
-                          <Button className="h-14 px-8 rounded-2xl bg-primary hover:bg-primary/90 text-white font-bold text-sm tracking-widest uppercase shadow-xl shadow-primary/30 group">
+                          <Button className="h-12 px-6 rounded-xl bg-primary hover:bg-primary/90 text-white font-bold text-xs tracking-widest uppercase shadow-xl shadow-primary/30 group">
                              Start Symptom Scan
-                             <ChevronRight size={18} className="ml-2 group-hover:translate-x-1 transition-transform" />
+                             <ChevronRight size={16} className="ml-2 group-hover:translate-x-1 transition-transform" />
                           </Button>
                         </Link>
-                        <Button variant="outline" className="h-14 px-8 rounded-2xl border-slate-800 bg-white/5 hover:bg-white/10 text-white font-bold text-sm tracking-widest uppercase">
-                           <Camera size={18} className="mr-2" />
+                        <Button variant="outline" className="h-12 px-6 rounded-xl border-slate-800 bg-white/5 hover:bg-white/10 text-white font-bold text-xs tracking-widest uppercase">
+                           <Camera size={16} className="mr-2" />
                            Skin Analysis
                         </Button>
                       </div>
@@ -161,7 +161,9 @@ export default function PatientDashboard() {
                   <History size={16} />
                   Diagnostic History
                 </h3>
-                <Button variant="ghost" className="text-primary font-bold text-sm hover:bg-primary/5">View All</Button>
+                <Link href="/history">
+                  <Button variant="ghost" className="text-primary font-bold text-sm hover:bg-primary/5">View All</Button>
+                </Link>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -170,29 +172,31 @@ export default function PatientDashboard() {
                 ) : history.length > 0 ? (
                   history.slice(0, 4).map((item, i) => (
                     <motion.div key={item.id} variants={cardVariants} initial="hidden" animate="visible" transition={{ delay: 0.2 + (i*0.1) }}>
-                      <Card className="p-6 bg-card/40 border-border backdrop-blur-xl hover:border-primary/40 transition-all cursor-pointer group">
-                        <div className="flex justify-between items-start mb-6">
-                          <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all duration-300">
-                            {item.diagnosis?.severity === 'CRITICAL' ? <AlertCircle /> : <Stethoscope />}
+                      <Link href={`/diagnose/${item.id}`}>
+                        <Card className="p-6 bg-card/40 border-border backdrop-blur-xl hover:border-primary/40 transition-all cursor-pointer group">
+                          <div className="flex justify-between items-start mb-6">
+                            <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all duration-300">
+                              {item.diagnosis?.severity === 'CRITICAL' ? <AlertCircle /> : <Stethoscope />}
+                            </div>
+                            <div className={cn(
+                              "px-3 py-1 rounded-full text-[10px] font-black tracking-widest uppercase border",
+                              item.diagnosis?.severity === 'CRITICAL' ? 'bg-red-500/10 text-red-500 border-red-500/20' : 
+                              item.diagnosis?.severity === 'HIGH' ? 'bg-orange-500/10 text-orange-500 border-orange-500/20' :
+                              'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
+                            )}>
+                              {item.diagnosis?.severity || 'LOW'} SEVERITY
+                            </div>
                           </div>
-                          <div className={cn(
-                            "px-3 py-1 rounded-full text-[10px] font-black tracking-widest uppercase border",
-                            item.diagnosis?.severity === 'CRITICAL' ? 'bg-red-500/10 text-red-500 border-red-500/20' : 
-                            item.diagnosis?.severity === 'HIGH' ? 'bg-orange-500/10 text-orange-500 border-orange-500/20' :
-                            'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
-                          )}>
-                            {item.diagnosis?.severity || 'LOW'} SEVERITY
+                          <div className="space-y-1">
+                            <h4 className="font-black text-lg text-foreground line-clamp-1">{item.title}</h4>
+                            <p className="text-sm text-muted-foreground">{new Date(item.createdAt).toLocaleDateString()}</p>
                           </div>
-                        </div>
-                        <div className="space-y-1">
-                          <h4 className="font-black text-lg text-foreground line-clamp-1">{item.title}</h4>
-                          <p className="text-sm text-muted-foreground">{new Date(item.createdAt).toLocaleDateString()}</p>
-                        </div>
-                        <div className="mt-4 pt-4 border-t border-border flex justify-between items-center">
-                          <span className="text-xs font-bold text-primary">{item.diagnosis?.specialty}</span>
-                          <ChevronRight size={16} className="text-muted-foreground group-hover:translate-x-1 transition-all" />
-                        </div>
-                      </Card>
+                          <div className="mt-4 pt-4 border-t border-border flex justify-between items-center">
+                            <span className="text-xs font-bold text-primary">{item.diagnosis?.specialty}</span>
+                            <ChevronRight size={16} className="text-muted-foreground group-hover:translate-x-1 transition-all" />
+                          </div>
+                        </Card>
+                      </Link>
                     </motion.div>
                   ))
                 ) : (

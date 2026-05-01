@@ -12,20 +12,20 @@ export default function TriagePage() {
       
       <main className="container mx-auto px-6 pt-24 space-y-12 relative z-10">
         {/* Page Header */}
-        <div className="max-w-4xl mx-auto text-center space-y-4">
+        <div className="max-w-4xl mx-auto text-center space-y-3">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-[10px] font-black uppercase tracking-[0.2em] mb-4"
+            className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-[9px] font-black uppercase tracking-[0.2em] mb-2"
           >
-            <Brain size={14} className="animate-pulse" />
+            <Brain size={12} className="animate-pulse" />
             AI Consultation Mode Active
           </motion.div>
           
           <motion.h1 
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            className="text-4xl md:text-6xl font-black tracking-tight text-foreground"
+            className="text-2xl md:text-4xl font-black tracking-tight text-foreground"
           >
             Clinical <span className="text-primary">Triage</span> Intelligence
           </motion.h1>
@@ -34,7 +34,7 @@ export default function TriagePage() {
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.1 }}
-            className="text-muted-foreground text-lg md:text-xl font-medium max-w-2xl mx-auto"
+            className="text-muted-foreground text-base md:text-lg font-medium max-w-xl mx-auto"
           >
             Describe your symptoms in detail. Our AI will analyze your condition and provide immediate clinical guidance and severity assessment.
           </motion.p>

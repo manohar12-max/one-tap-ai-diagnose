@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { motion } from "framer-motion"
+import Link from "next/link"
 import { 
   ShieldAlert, 
   Activity, 
@@ -22,15 +23,12 @@ import { DoctorMatch } from "@/components/patient/DoctorMatch"
 interface Props {
   result: any
   sessionId: string | null
+  existingMessages?: any[]
   onRestart: () => void
 }
 
-export function DiagnosisResultView({ result, sessionId, onRestart }: Props) {
-  const [view, setView] = useState<"result" | "chat" | "doctors">("result")
-
-  if (view === "chat") {
-    return <DiagnosisChat initialDiagnosis={result} sessionId={sessionId} onBack={() => setView("result")} />
-  }
+export function DiagnosisResultView({ result, sessionId, existingMessages = [], onRestart }: Props) {
+  const [view, setView] = useState<"result" | "doctors">("result")
 
   if (view === "doctors") {
     return <DoctorMatch specialty={result.specialty} onBack={() => setView("result")} />
@@ -49,10 +47,10 @@ export function DiagnosisResultView({ result, sessionId, onRestart }: Props) {
             Back to Assessment
           </Button>
           <div className="space-y-1">
-            <h2 className="text-4xl md:text-5xl font-black text-foreground tracking-tight">
+            <h2 className="text-3xl md:text-4xl font-black text-foreground tracking-tight">
               Clinical <span className="text-primary">Summary</span>
             </h2>
-            <p className="text-muted-foreground font-medium text-lg">
+            <p className="text-muted-foreground font-medium text-base">
               {result.summary || "Generating clinical summary..."}
             </p>
           </div>
@@ -72,13 +70,13 @@ export function DiagnosisResultView({ result, sessionId, onRestart }: Props) {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Main Analysis */}
         <div className="lg:col-span-2 space-y-8">
-          <Card className="p-8 bg-card/50 border-border shadow-xl rounded-3xl space-y-8">
-            <div className="space-y-4">
+          <Card className="p-6 bg-card/50 border-border shadow-xl rounded-2xl space-y-6">
+            <div className="space-y-3">
               <div className="flex items-center gap-2 text-primary">
-                <Activity size={20} />
-                <span className="text-xs font-black uppercase tracking-widest">Medical Analysis</span>
+                <Activity size={18} />
+                <span className="text-[10px] font-black uppercase tracking-widest">Medical Analysis</span>
               </div>
-              <p className="text-muted-foreground leading-relaxed text-lg font-medium italic">
+              <p className="text-muted-foreground leading-relaxed text-base font-medium italic">
                 "{result.explanation}"
               </p>
             </div>
@@ -133,34 +131,36 @@ export function DiagnosisResultView({ result, sessionId, onRestart }: Props) {
         </div>
 
         {/* Sidebar Actions */}
-        <div className="space-y-8">
-          <Card className="p-8 bg-slate-900 dark:bg-slate-950 text-white rounded-3xl shadow-2xl border-0 relative overflow-hidden">
-            <div className="absolute -top-10 -right-10 w-40 h-40 bg-primary/20 rounded-full blur-3xl" />
+        <div className="space-y-6">
+          <Card className="p-6 bg-slate-900 dark:bg-slate-950 text-white rounded-2xl shadow-2xl border-0 relative overflow-hidden">
+            <div className="absolute -top-10 -right-10 w-32 h-32 bg-primary/20 rounded-full blur-3xl" />
             
-            <div className="relative z-10 space-y-6">
-              <div className="space-y-2">
-                <div className="w-12 h-12 rounded-2xl bg-primary/20 flex items-center justify-center text-primary mb-4">
-                  <Stethoscope size={24} />
+            <div className="relative z-10 space-y-5">
+              <div className="space-y-1.5">
+                <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center text-primary mb-3">
+                  <Stethoscope size={20} />
                 </div>
-                <p className="text-[10px] font-black uppercase tracking-widest text-primary">Specialty Match</p>
-                <h3 className="text-2xl font-black">{result.specialty}</h3>
+                <p className="text-[9px] font-black uppercase tracking-widest text-primary">Specialty Match</p>
+                <h3 className="text-xl font-black">{result.specialty}</h3>
               </div>
 
-              <div className="space-y-4 pt-6 border-t border-white/10">
+              <div className="space-y-3 pt-5 border-t border-white/10">
                 <Button 
-                  onClick={() => setView("doctors")}
-                  className="w-full h-14 bg-primary hover:bg-primary/90 text-white font-black rounded-2xl shadow-lg shadow-primary/20 group"
+                   onClick={() => setView("doctors")}
+                   className="w-full h-12 bg-primary hover:bg-primary/90 text-white font-black rounded-xl shadow-lg shadow-primary/20 group text-sm"
                 >
                   Book specialist
-                  <ChevronRight size={18} className="ml-2 group-hover:translate-x-1 transition-transform" />
+                  <ChevronRight size={16} className="ml-2 group-hover:translate-x-1 transition-transform" />
                 </Button>
                 <Button 
-                  variant="outline" 
-                  onClick={() => setView("chat")}
-                  className="w-full h-14 border-white/20 hover:bg-white/10 text-white font-black rounded-2xl gap-3"
+                   variant="outline" 
+                   asChild
+                   className="w-full h-12 border-white/20 hover:bg-white/10 text-white font-black rounded-xl gap-2.5 text-sm"
                 >
-                  <MessageSquare size={18} />
-                  Chat with Specialist
+                  <Link href={`/diagnose/${sessionId}/chat`}>
+                    <MessageSquare size={16} />
+                    Chat with Clinical Companion
+                  </Link>
                 </Button>
               </div>
             </div>

@@ -21,16 +21,16 @@ export function MedicalBackground() {
   if (pathname === "/admin") return null
 
   const watermarks = [
-    { Icon: FlaskConical, x: "10%", y: "15%", rotate: -15, size: 160 },
-    { Icon: Stethoscope, x: "85%", y: "20%", rotate: 15, size: 180 },
-    { Icon: Syringe, x: "15%", y: "55%", rotate: 45, size: 140 },
-    { Icon: Atom, x: "80%", y: "50%", rotate: -10, size: 160 },
-    { Icon: Dna, x: "10%", y: "85%", rotate: 20, size: 200 },
-    { Icon: Pill, x: "90%", y: "80%", rotate: -30, size: 150 },
-    { Icon: Microscope, x: "35%", y: "75%", rotate: -12, size: 130 },
-    { Icon: HeartPulse, x: "45%", y: "30%", rotate: 0, size: 120 },
-    { Icon: Thermometer, x: "65%", y: "85%", rotate: 10, size: 130 },
-    { Icon: ClipboardCheck, x: "60%", y: "60%", rotate: -5, size: 140 },
+    { Icon: FlaskConical, x: "10%", y: "15%", rotate: -15, size: 100 },
+    { Icon: Stethoscope, x: "85%", y: "20%", rotate: 15, size: 120 },
+    { Icon: Syringe, x: "15%", y: "55%", rotate: 45, size: 90 },
+    { Icon: Atom, x: "80%", y: "50%", rotate: -10, size: 110 },
+    { Icon: Dna, x: "10%", y: "85%", rotate: 20, size: 130 },
+    { Icon: Pill, x: "90%", y: "80%", rotate: -30, size: 100 },
+    { Icon: Microscope, x: "35%", y: "75%", rotate: -12, size: 80 },
+    { Icon: HeartPulse, x: "45%", y: "30%", rotate: 0, size: 70 },
+    { Icon: Thermometer, x: "65%", y: "85%", rotate: 10, size: 90 },
+    { Icon: ClipboardCheck, x: "60%", y: "60%", rotate: -5, size: 100 },
   ]
 
   return (
@@ -39,14 +39,13 @@ export function MedicalBackground() {
         {watermarks.map((item, index) => (
           <motion.div
             key={index}
-            className="absolute text-primary/25 dark:text-primary/35"
+            className="absolute text-primary/9 dark:text-primary/20"
             style={{
               left: item.x,
               top: item.y,
             }}
-            initial={{ opacity: 0, scale: 1 }}
+            initial={{ scale: 1, opacity: 0.9 }}
             animate={{
-              opacity: 1,
               scale: [1, 1.15, 1],
               rotate: [item.rotate, item.rotate + 3, item.rotate]
             }}

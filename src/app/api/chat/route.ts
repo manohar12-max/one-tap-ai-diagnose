@@ -9,6 +9,7 @@ import { verifyToken } from "@/lib/auth"
 export async function POST(req: Request) {
   try {
     const { messages, chatSessionId } = await req.json()
+    console.log(`Received chat request for session: ${chatSessionId} (${messages.length} messages)`)
     
     // Get user from auth token
     const cookieStore = await cookies()
@@ -20,32 +21,44 @@ export async function POST(req: Request) {
       messages: await convertToModelMessages(messages),
       system: CHAT_SYSTEM_PROMPT,
       onFinish: async ({ text }) => {
+        console.log("Stream finished. ChatSessionId:", chatSessionId, "User:", user?.userId)
         if (user && chatSessionId) {
-          const lastUserMessage = messages[messages.length - 1]
-          const lastUserText = lastUserMessage.parts?.filter((p: any) => p.type === "text").map((p: any) => p.text).join("") || lastUserMessage.content || ""
-          
-          // Save messages to database
-          // @ts-ignore - Prisma client property generated but IDE may be stale
-          await prisma.message.create({
-            data: {
-              chatSessionId,
-              role: "user",
-              content: lastUserText,
-            }
-          })
-          // @ts-ignore - Prisma client property generated but IDE may be stale
-          await prisma.message.create({
-            data: {
-              chatSessionId,
-              role: "assistant",
-              content: text,
-            }
-          })
+          try {
+            const lastUserMessage = messages[messages.length - 1]
+            console.log("Last user message:", lastUserMessage)
+            const lastUserText = lastUserMessage.parts?.filter((p: any) => p.type === "text").map((p: any) => p.text).join("") || lastUserMessage.content || ""
+            
+            console.log("Saving user message:", lastUserText)
+            // Save messages to database
+            // @ts-ignore - Prisma client property generated but IDE may be stale
+            await prisma.message.create({
+              data: {
+                chatSessionId,
+                role: "user",
+                content: lastUserText,
+              }
+            })
+            
+            console.log("Saving assistant message:", text)
+            // @ts-ignore - Prisma client property generated but IDE may be stale
+            await prisma.message.create({
+              data: {
+                chatSessionId,
+                role: "assistant",
+                content: text,
+              }
+            })
+            console.log("Messages saved successfully")
+          } catch (dbError) {
+            console.error("Database save error:", dbError)
+          }
+        } else {
+          console.log("Skipping save: user or chatSessionId missing")
         }
       }
     })
 
-    return result.toTextStreamResponse()
+    return result.toUIMessageStreamResponse()
   } catch (error) {
     console.error("Chat Error:", error)
     return new Response(JSON.stringify({ error: "Failed to process chat" }), {
