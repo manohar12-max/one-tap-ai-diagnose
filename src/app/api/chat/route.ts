@@ -4,33 +4,56 @@ import { prisma } from "@/lib/prisma"
 import { cookies } from "next/headers"
 import { verifyToken } from "@/lib/auth"
 
-
-
 export async function POST(req: Request) {
   try {
     const { messages, chatSessionId } = await req.json()
-    console.log(`Received chat request for session: ${chatSessionId} (${messages.length} messages)`)
     
     // Get user from auth token
     const cookieStore = await cookies()
     const token = cookieStore.get("token")?.value
-    const user = token ? verifyToken(token) : null
+    const userPayload = token ? verifyToken(token) : null
+
+    let userContext = "";
+
+    // If user is logged in, fetch their clinical context
+    if (userPayload?.userId) {
+      const fullUser = await prisma.user.findUnique({
+        where: { id: userPayload.userId },
+        select: {
+          age: true,
+          gender: true,
+          medicalHistory: true,
+          allergies: true,
+          chronicConditions: true,
+          currentMedications: true
+        } as any
+      }) as any;
+
+      if (fullUser) {
+        userContext = `\n\nPATIENT MEDICAL CONTEXT:\n`;
+        if (fullUser.age) userContext += `- Age: ${fullUser.age}\n`;
+        if (fullUser.gender) userContext += `- Gender: ${fullUser.gender}\n`;
+        if (fullUser.allergies?.length) userContext += `- Allergies: ${fullUser.allergies.join(", ")}\n`;
+        if (fullUser.chronicConditions?.length) userContext += `- Chronic Conditions: ${fullUser.chronicConditions.join(", ")}\n`;
+        if (fullUser.medicalHistory) userContext += `- History: ${fullUser.medicalHistory}\n`;
+        if (fullUser.currentMedications) userContext += `- Current Medications: ${fullUser.currentMedications}\n`;
+        
+        userContext += `\nIMPORTANT: Use this history to inform your triage. For example, if they are allergic to a common drug, do not suggest it. If they have a chronic condition like Diabetes, consider its impact on their new symptoms.`;
+      }
+    }
 
     const result = await streamText({
       model: model,
       messages: await convertToModelMessages(messages),
-      system: CHAT_SYSTEM_PROMPT,
+      system: CHAT_SYSTEM_PROMPT + userContext,
       onFinish: async ({ text }) => {
-        console.log("Stream finished. ChatSessionId:", chatSessionId, "User:", user?.userId)
-        if (user && chatSessionId) {
+        if (userPayload && chatSessionId) {
           try {
             const lastUserMessage = messages[messages.length - 1]
-            console.log("Last user message:", lastUserMessage)
             const lastUserText = lastUserMessage.parts?.filter((p: any) => p.type === "text").map((p: any) => p.text).join("") || lastUserMessage.content || ""
             
-            console.log("Saving user message:", lastUserText)
             // Save messages to database
-            // @ts-ignore - Prisma client property generated but IDE may be stale
+            // @ts-ignore
             await prisma.message.create({
               data: {
                 chatSessionId,
@@ -39,8 +62,7 @@ export async function POST(req: Request) {
               }
             })
             
-            console.log("Saving assistant message:", text)
-            // @ts-ignore - Prisma client property generated but IDE may be stale
+            // @ts-ignore
             await prisma.message.create({
               data: {
                 chatSessionId,
@@ -48,17 +70,14 @@ export async function POST(req: Request) {
                 content: text,
               }
             })
-            console.log("Messages saved successfully")
           } catch (dbError) {
             console.error("Database save error:", dbError)
           }
-        } else {
-          console.log("Skipping save: user or chatSessionId missing")
         }
       }
     })
 
-    // @ts-ignore - toUIMessageStreamResponse exists in AI SDK v6 but may have stale type definitions
+    // @ts-ignore
     return result.toUIMessageStreamResponse()
   } catch (error) {
     console.error("Chat Error:", error)

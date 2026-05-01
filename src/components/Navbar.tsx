@@ -54,13 +54,13 @@ export function Navbar() {
     ? [
         { name: "Dashboard", href: "/dashboard", icon: <LayoutDashboard size={14} /> },
         { name: "AI Diagnose", href: "/diagnose", icon: <Sparkles size={14} />, isLive: true },
-        { name: "Find Doctors", href: "/doctors", isComingSoon: true },
+        { name: "Find Doctors", href: "/doctors", icon: <Search size={14} />, isLive: true },
         { name: "Consult", href: "/consult", isComingSoon: true },
       ]
     : [
         { name: "Home", href: "/", icon: null },
         { name: "AI Diagnose", href: "/diagnose", icon: <Sparkles size={14} />, isLive: true },
-        { name: "Find Doctors", href: "/doctors", isComingSoon: true },
+        { name: "Find Doctors", href: "/doctors", icon: <Search size={14} />, isLive: true },
         { name: "Consult", href: "/consult", isComingSoon: true },
       ]
 

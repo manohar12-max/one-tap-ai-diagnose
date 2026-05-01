@@ -7,43 +7,81 @@ export async function POST(req: Request) {
   try {
     const token = (await cookies()).get("token")?.value
     if (!token) {
+      console.error("No token found in cookies")
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
     const payload = verifyToken(token)
     if (!payload) {
+      console.error("Token verification failed")
       return NextResponse.json({ error: "Invalid token" }, { status: 401 })
     }
 
     const data = await req.json()
+    console.log("Received update data:", JSON.stringify(data, null, 2))
     const { role } = payload
+
+    // Helper to safely parse integers
+    const safeParseInt = (val: any) => {
+      if (val === undefined || val === null || val === "") return undefined;
+      const parsed = parseInt(val);
+      return isNaN(parsed) ? undefined : parsed;
+    }
 
     let updateData: any = {
       isDetailsFilled: true,
+      age: safeParseInt(data.age),
+      gender: data.gender || undefined,
+      city: data.city || undefined,
     }
 
     if (role === "DOCTOR") {
-      if (!data.specialty || !data.licenseNumber || !data.experience) {
-        return NextResponse.json({ error: "Missing required doctor fields" }, { status: 400 })
+      updateData = {
+        ...updateData,
+        specialty: data.specialty || undefined,
+        licenseNumber: data.licenseNumber || undefined,
+        experience: safeParseInt(data.experience),
+        degree: data.degree || undefined,
+        clinicName: data.clinicName || undefined,
+        clinicAddress: data.clinicAddress || undefined,
+        consultationFee: safeParseInt(data.consultationFee),
+        bio: data.bio || undefined,
       }
-      updateData.specialty = data.specialty
-      updateData.licenseNumber = data.licenseNumber
-      updateData.experience = parseInt(data.experience)
     } else {
-      // Patient fields are optional
-      if (data.age) updateData.age = parseInt(data.age)
-      if (data.gender) updateData.gender = data.gender
-      if (data.medicalHistory) updateData.medicalHistory = data.medicalHistory
+      // Patient fields
+      updateData = {
+        ...updateData,
+        bloodGroup: data.bloodGroup || undefined,
+        height: data.height || undefined,
+        weight: data.weight || undefined,
+        medicalHistory: data.medicalHistory || undefined,
+        allergies: Array.isArray(data.allergies) ? data.allergies : undefined,
+        chronicConditions: Array.isArray(data.chronicConditions) ? data.chronicConditions : undefined,
+        currentMedications: data.currentMedications || undefined,
+        emergencyContact: data.emergencyContact || undefined,
+      }
     }
+
+    // Clean up undefined fields to avoid Prisma issues
+    Object.keys(updateData).forEach(key => {
+      if (updateData[key] === undefined) {
+        delete updateData[key];
+      }
+    });
+
+    console.log("Applying update for user:", payload.userId, "Data:", JSON.stringify(updateData, null, 2))
 
     const updatedUser = await prisma.user.update({
       where: { id: payload.userId },
       data: updateData,
     })
 
-    return NextResponse.json({ message: "Details updated successfully", user: updatedUser })
+    return NextResponse.json({ message: "Profile updated successfully", user: updatedUser })
   } catch (error) {
-    console.error("Update details error:", error)
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 })
+    console.error("Update details error full stack:", error)
+    return NextResponse.json({ 
+      error: "Internal Server Error", 
+      details: error instanceof Error ? error.message : "Unknown error" 
+    }, { status: 500 })
   }
 }

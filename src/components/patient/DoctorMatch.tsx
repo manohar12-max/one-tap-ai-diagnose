@@ -14,11 +14,15 @@ import {
   Activity,
   Loader2,
   Navigation,
-  Phone
+  Phone,
+  LocateFixed,
+  Building2
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Input } from "@/components/ui/input"
+import { toast } from "sonner"
 
 interface Props {
   specialty: string
@@ -43,15 +47,23 @@ interface Doctor {
 
 export function DoctorMatch({ specialty, onBack }: Props) {
   const [doctors, setDoctors] = useState<Doctor[]>([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [locationPermission, setLocationPermission] = useState<"prompt" | "granted" | "denied">("prompt")
+  const [userCity, setUserCity] = useState<string>("")
+  const [cityInput, setCityInput] = useState("")
+  const [isLocationRequired, setIsLocationRequired] = useState(true)
 
   useEffect(() => {
-    fetchDoctors()
+    const userData = JSON.parse(localStorage.getItem("user") || "{}")
+    if (userData.city) {
+      setUserCity(userData.city)
+      setIsLocationRequired(false)
+      fetchDoctors({ city: userData.city })
+    }
   }, [specialty])
 
-  const fetchDoctors = async (coords?: { lat: number; lng: number }) => {
+  const fetchDoctors = async (params: { lat?: number; lng?: number; city?: string }) => {
     setLoading(true)
     setError(null)
     try {
@@ -60,8 +72,9 @@ export function DoctorMatch({ specialty, onBack }: Props) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           specialty,
-          lat: coords?.lat,
-          lng: coords?.lng
+          lat: params.lat,
+          lng: params.lng,
+          city: params.city
         }),
       })
 
@@ -69,9 +82,10 @@ export function DoctorMatch({ specialty, onBack }: Props) {
       
       const data = await response.json()
       setDoctors(data.doctors || [])
+      setIsLocationRequired(false)
     } catch (err) {
       console.error("Error fetching doctors:", err)
-      setError("Could not find specialists nearby. Please try again later.")
+      setError("Could not find specialists. Please try a different city.")
     } finally {
       setLoading(false)
     }
@@ -79,7 +93,7 @@ export function DoctorMatch({ specialty, onBack }: Props) {
 
   const handleGetLocation = () => {
     if (!navigator.geolocation) {
-      setError("Geolocation is not supported by your browser")
+      toast.error("Geolocation is not supported by your browser")
       return
     }
 
@@ -95,9 +109,96 @@ export function DoctorMatch({ specialty, onBack }: Props) {
       (err) => {
         console.error("Geolocation error:", err)
         setLocationPermission("denied")
-        setError("Location access denied. Showing results without distance filtering.")
-        fetchDoctors() // Fetch without coordinates
+        setLoading(false)
+        toast.error("Location access denied. Please enter city manually.")
       }
+    )
+  }
+
+  const handleManualCitySubmit = async () => {
+    if (!cityInput.trim()) return;
+    
+    setLoading(true)
+    try {
+      // Save city to profile
+      const res = await fetch("/api/user/details", {
+        method: "POST",
+        body: JSON.stringify({ city: cityInput }),
+      })
+
+      if (res.ok) {
+        const userData = JSON.parse(localStorage.getItem("user") || "{}")
+        userData.city = cityInput
+        localStorage.setItem("user", JSON.stringify(userData))
+        setUserCity(cityInput)
+        fetchDoctors({ city: cityInput })
+      }
+    } catch (err) {
+      toast.error("Failed to save location")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (isLocationRequired && !loading) {
+    return (
+      <div className="max-w-xl mx-auto py-20 px-4 text-center space-y-8">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="space-y-6"
+        >
+          <div className="w-20 h-20 bg-primary/10 rounded-3xl flex items-center justify-center mx-auto text-primary">
+            <LocateFixed size={40} />
+          </div>
+          <div className="space-y-2">
+            <h2 className="text-3xl font-black tracking-tight">Location Required</h2>
+            <p className="text-muted-foreground font-medium">
+              To find the best specialists for your <span className="text-foreground font-bold">{specialty}</span> concern, we need to know your area.
+            </p>
+          </div>
+
+          <Card className="p-8 bg-card/50 border-border backdrop-blur-xl rounded-[2rem] space-y-6">
+            <Button 
+              onClick={handleGetLocation}
+              className="w-full h-14 bg-primary hover:bg-primary/90 text-white rounded-2xl font-black gap-3 shadow-lg shadow-primary/20"
+            >
+              <Navigation size={20} />
+              Use Current Location
+            </Button>
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-border" /></div>
+              <div className="relative flex justify-center text-xs uppercase"><span className="bg-card px-2 text-muted-foreground font-bold">Or enter manually</span></div>
+            </div>
+
+            <div className="flex gap-3">
+              <div className="relative flex-1 group">
+                <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" size={18} />
+                <Input 
+                  placeholder="Enter your city..." 
+                  value={cityInput}
+                  onChange={(e) => setCityInput(e.target.value)}
+                  className="h-14 pl-12 rounded-2xl bg-secondary/50 border-border font-bold"
+                />
+              </div>
+              <Button 
+                onClick={handleManualCitySubmit}
+                disabled={!cityInput}
+                variant="secondary" 
+                className="h-14 px-6 rounded-2xl font-black"
+              >
+                Search
+              </Button>
+            </div>
+          </Card>
+
+          <Button variant="ghost" onClick={onBack} className="text-muted-foreground hover:text-primary gap-2 font-bold">
+            <ArrowLeft size={16} />
+            Back to Diagnosis
+          </Button>
+        </motion.div>
+      </div>
     )
   }
 
@@ -121,7 +222,7 @@ export function DoctorMatch({ specialty, onBack }: Props) {
               {loading && <Loader2 size={24} className="animate-spin text-primary mt-2" />}
             </div>
             <p className="text-muted-foreground font-medium text-lg">
-              Verified <span className="text-foreground font-black underline decoration-primary/30 decoration-4">{specialty}</span> specialists near your area.
+              Verified <span className="text-foreground font-black underline decoration-primary/30 decoration-4">{specialty}</span> specialists in <span className="text-primary font-black uppercase">{userCity || "Your Area"}</span>.
             </p>
           </div>
         </div>
@@ -131,17 +232,15 @@ export function DoctorMatch({ specialty, onBack }: Props) {
             <ShieldCheck size={14} />
             Verified Providers
           </div>
-          {locationPermission !== "granted" && (
-            <Button 
-              onClick={handleGetLocation}
-              variant="outline" 
-              size="sm" 
-              className="rounded-full gap-2 text-[10px] font-black uppercase tracking-widest border-primary/20 text-primary hover:bg-primary/5"
-            >
-              <Navigation size={12} />
-              Enable Location
-            </Button>
-          )}
+          <Button 
+            onClick={() => setIsLocationRequired(true)}
+            variant="outline" 
+            size="sm" 
+            className="rounded-full gap-2 text-[10px] font-black uppercase tracking-widest border-primary/20 text-primary hover:bg-primary/5"
+          >
+            <MapPin size={12} />
+            Change Location
+          </Button>
         </div>
       </div>
 
@@ -154,7 +253,6 @@ export function DoctorMatch({ specialty, onBack }: Props) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <AnimatePresence mode="popLayout">
           {loading ? (
-            // Skeleton Loader
             [1, 2, 3, 4].map((i) => (
               <div key={i} className="h-64 rounded-[2rem] bg-secondary/20 animate-pulse border border-border" />
             ))
@@ -251,24 +349,13 @@ export function DoctorMatch({ specialty, onBack }: Props) {
                 <h3 className="text-xl font-black text-foreground">No specialists found</h3>
                 <p className="text-muted-foreground font-medium">Try broadening your search or enabling location access.</p>
               </div>
-              <Button onClick={() => fetchDoctors()} variant="outline" className="rounded-xl font-black">
+              <Button onClick={() => fetchDoctors({ city: userCity })} variant="outline" className="rounded-xl font-black">
                 Retry Search
               </Button>
             </div>
           )}
         </AnimatePresence>
       </div>
-
-      <div className="flex flex-col items-center justify-center py-10 space-y-4">
-        <div className="p-6 bg-primary/5 rounded-[2.5rem] border border-primary/10 text-center max-w-lg">
-          <p className="text-sm font-bold text-muted-foreground mb-4 italic">"Early consultation with a specialist can significantly improve treatment outcomes."</p>
-          <Button variant="outline" className="rounded-2xl h-12 px-8 border-primary/20 text-primary font-black gap-2 hover:bg-primary hover:text-white transition-all">
-            <Search size={18} />
-            Browse All Specialists
-          </Button>
-        </div>
-      </div>
     </div>
   )
 }
-

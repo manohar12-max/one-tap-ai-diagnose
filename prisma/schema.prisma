@@ -35,16 +35,29 @@ model User {
   name            String
   role            Role     @default(PATIENT)
   isDetailsFilled Boolean  @default(false)
+  city            String?
   
   // Doctor specific
   specialty       String?
   licenseNumber   String?
   experience      Int?
-  
+  degree          String?   // e.g. MBBS, MD
+  clinicName      String?
+  clinicAddress   String?
+  consultationFee Int?
+  bio             String?
+
   // Patient specific
-  age             Int?
-  gender          String?
-  medicalHistory  String?
+  age               Int?
+  gender            String?
+  bloodGroup        String?
+  height            String?
+  weight            String?
+  medicalHistory    String?
+  allergies         String[]
+  chronicConditions String[]
+  currentMedications String?
+  emergencyContact  String?
 
   createdAt       DateTime @default(now())
 

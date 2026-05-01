@@ -13,7 +13,8 @@ import {
   Stethoscope,
   ArrowLeft,
   ChevronRight,
-  Download
+  Download,
+  Loader2
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -32,14 +33,25 @@ export function DiagnosisResultView({ result, sessionId, existingMessages = [], 
   const [view, setView] = useState<"result" | "doctors">("result")
   const searchParams = useSearchParams()
 
-  useEffect(() => {
-    if (searchParams.get("view") === "doctors") {
-      setView("doctors")
-    }
-  }, [searchParams])
+  if (!result) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 space-y-6 text-center">
+        <div className="w-20 h-20 bg-primary/10 rounded-3xl flex items-center justify-center text-primary animate-pulse">
+          <Activity size={40} />
+        </div>
+        <div className="space-y-2">
+          <h2 className="text-3xl font-black tracking-tight">Preparing Clinical Summary</h2>
+          <p className="text-muted-foreground font-medium max-w-md mx-auto">
+            Our AI is meticulously analyzing your symptoms and medical history. This will only take a moment.
+          </p>
+        </div>
+        <Loader2 className="animate-spin text-primary mt-4" size={32} />
+      </div>
+    )
+  }
 
   if (view === "doctors") {
-    return <DoctorMatch specialty={result.specialty} onBack={() => setView("result")} />
+    return <DoctorMatch specialty={result?.specialty || "Specialist"} onBack={() => setView("result")} />
   }
 
   return (
@@ -59,7 +71,7 @@ export function DiagnosisResultView({ result, sessionId, existingMessages = [], 
               Clinical <span className="text-primary">Summary</span>
             </h2>
             <p className="text-muted-foreground font-medium text-base">
-              {result.summary || "Generating clinical summary..."}
+              {result?.summary || "Generating clinical summary..."}
             </p>
           </div>
         </div>
@@ -71,7 +83,7 @@ export function DiagnosisResultView({ result, sessionId, existingMessages = [], 
           ${result.severity === 'MEDIUM' ? 'bg-yellow-500/10 text-yellow-600 border-yellow-500/30 shadow-yellow-500/10' : ''}
           ${result.severity === 'LOW' ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/30 shadow-emerald-500/10' : ''}
         `}>
-          {result.severity} SEVERITY DETECTED
+          {result?.severity} SEVERITY DETECTED
         </div>
       </div>
 
@@ -85,7 +97,7 @@ export function DiagnosisResultView({ result, sessionId, existingMessages = [], 
                 <span className="text-[10px] font-black uppercase tracking-widest">Medical Analysis</span>
               </div>
               <p className="text-muted-foreground leading-relaxed text-base font-medium italic">
-                "{result.explanation}"
+                "{result?.explanation}"
               </p>
             </div>
 
@@ -93,7 +105,7 @@ export function DiagnosisResultView({ result, sessionId, existingMessages = [], 
               <div className="space-y-4">
                 <h4 className="text-sm font-black uppercase tracking-widest text-foreground">Possible Conditions</h4>
                 <div className="space-y-2">
-                  {result.possibleConditions?.map((cond: string) => (
+                  {result?.possibleConditions?.map((cond: string) => (
                     <div key={cond} className="flex items-center gap-3 p-3 rounded-xl bg-secondary/30 text-sm font-bold">
                       <div className="w-1.5 h-1.5 rounded-full bg-primary" />
                       {cond}
@@ -104,7 +116,7 @@ export function DiagnosisResultView({ result, sessionId, existingMessages = [], 
               <div className="space-y-4">
                 <h4 className="text-sm font-black uppercase tracking-widest text-foreground">Immediate Precautions</h4>
                 <div className="space-y-2">
-                  {result.precautions?.map((prec: string) => (
+                  {result?.precautions?.map((prec: string) => (
                     <div key={prec} className="flex items-center gap-3 p-3 rounded-xl bg-secondary/30 text-sm font-bold text-muted-foreground">
                       <CheckCircle2 size={16} className="text-emerald-500 shrink-0" />
                       {prec}
@@ -116,7 +128,7 @@ export function DiagnosisResultView({ result, sessionId, existingMessages = [], 
           </Card>
 
           {/* Red Flags Alert if any */}
-          {result.redFlags && result.redFlags.length > 0 && (
+          {result?.redFlags && result.redFlags.length > 0 && (
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
@@ -149,7 +161,7 @@ export function DiagnosisResultView({ result, sessionId, existingMessages = [], 
                   <Stethoscope size={20} />
                 </div>
                 <p className="text-[9px] font-black uppercase tracking-widest text-primary">Specialty Match</p>
-                <h3 className="text-xl font-black">{result.specialty}</h3>
+                <h3 className="text-xl font-black">{result?.specialty}</h3>
               </div>
 
               <div className="space-y-3 pt-5 border-t border-white/10">
@@ -177,7 +189,7 @@ export function DiagnosisResultView({ result, sessionId, existingMessages = [], 
           <Card className="p-8 bg-card border-border rounded-3xl space-y-6 shadow-xl">
              <h4 className="text-sm font-black uppercase tracking-widest text-muted-foreground">Next Clinical Steps</h4>
              <ul className="space-y-4">
-               {result.nextSteps?.map((step: string, i: number) => (
+               {result?.nextSteps?.map((step: string, i: number) => (
                  <li key={i} className="flex items-start gap-4">
                    <div className="w-6 h-6 rounded-full bg-secondary flex items-center justify-center text-[10px] font-black shrink-0 mt-1">
                      {i + 1}

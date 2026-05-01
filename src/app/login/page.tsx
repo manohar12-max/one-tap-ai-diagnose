@@ -37,7 +37,7 @@ export default function LoginPage() {
           description: "Logged in successfully.",
         })
         
-        if (data.user.role === "DOCTOR" && !data.user.isDetailsFilled) {
+        if (!data.user.isDetailsFilled) {
           router.push("/onboarding")
         } else {
           router.push("/dashboard")
