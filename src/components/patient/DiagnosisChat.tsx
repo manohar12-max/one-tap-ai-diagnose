@@ -13,7 +13,8 @@ import {
   Sparkles,
   RefreshCcw,
   Smile,
-  ShieldCheck
+  ShieldCheck,
+  MapPin
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -182,6 +183,33 @@ export function DiagnosisChat({ initialDiagnosis, sessionId, existingMessages = 
                 <span className="w-1.5 h-1.5 bg-primary/40 rounded-full animate-bounce" />
               </div>
             </div>
+          )}
+          {messages.length > 2 && !isLoading && initialDiagnosis.specialty && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex flex-col items-center gap-4 p-6 rounded-3xl bg-primary/5 border border-primary/10 mt-8"
+            >
+              <div className="flex items-center gap-2 text-primary font-black text-[10px] uppercase tracking-[0.2em]">
+                <Sparkles size={14} />
+                Recommended Next Step
+              </div>
+              <h3 className="text-lg font-black text-foreground text-center">
+                Consult a {initialDiagnosis.specialty}
+              </h3>
+              <p className="text-xs font-medium text-muted-foreground text-center max-w-xs">
+                We've found several highly-rated specialists near you who can help with these symptoms.
+              </p>
+              <Button 
+                onClick={() => {
+                  router.push(`/diagnose/${sessionId}?view=doctors`)
+                }}
+                className="rounded-xl bg-primary hover:bg-primary/90 text-white font-black gap-2 px-8"
+              >
+                <MapPin size={16} />
+                Find Nearby Doctors
+              </Button>
+            </motion.div>
           )}
         </div>
 

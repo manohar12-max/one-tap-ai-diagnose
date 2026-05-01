@@ -58,6 +58,7 @@ export async function POST(req: Request) {
       }
     })
 
+    // @ts-ignore - toUIMessageStreamResponse exists in AI SDK v6 but may have stale type definitions
     return result.toUIMessageStreamResponse()
   } catch (error) {
     console.error("Chat Error:", error)

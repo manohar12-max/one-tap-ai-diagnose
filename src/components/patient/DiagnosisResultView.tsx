@@ -1,8 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import Link from "next/link"
+import { useSearchParams } from "next/navigation"
 import { 
   ShieldAlert, 
   Activity, 
@@ -29,6 +30,13 @@ interface Props {
 
 export function DiagnosisResultView({ result, sessionId, existingMessages = [], onRestart }: Props) {
   const [view, setView] = useState<"result" | "doctors">("result")
+  const searchParams = useSearchParams()
+
+  useEffect(() => {
+    if (searchParams.get("view") === "doctors") {
+      setView("doctors")
+    }
+  }, [searchParams])
 
   if (view === "doctors") {
     return <DoctorMatch specialty={result.specialty} onBack={() => setView("result")} />
