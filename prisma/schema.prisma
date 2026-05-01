@@ -1,0 +1,56 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  PATIENT
+  DOCTOR
+  ADMIN
+}
+
+enum Severity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum Status {
+  PENDING
+  IN_CONSULTATION
+  COMPLETED
+  CANCELLED
+}
+
+model User {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  email     String   @unique
+  name      String
+  role      Role     @default(PATIENT)
+  specialty String?
+  createdAt DateTime @default(now())
+
+  patientAppointments Appointment[] @relation("Patient")
+  doctorAppointments  Appointment[] @relation("Doctor")
+}
+
+model Appointment {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  patientId     String   @db.ObjectId
+  patient       User     @relation("Patient", fields: [patientId], references: [id])
+  
+  doctorId      String?  @db.ObjectId
+  doctor        User?    @relation("Doctor", fields: [doctorId], references: [id])
+
+  symptoms      String
+  aiDiagnosis   String
+  severity      Severity @default(LOW)
+  status        Status   @default(PENDING)
+  
+  createdAt     DateTime @default(now())
+}
