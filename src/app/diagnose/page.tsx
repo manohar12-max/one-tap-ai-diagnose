@@ -1,6 +1,6 @@
 "use client"
 
-import { Navbar } from "@/components/Navbar"
+import { Navbar } from "../../components/Navbar"
 import { DiagnosisWizard } from "@/components/patient/DiagnosisWizard"
 import { motion } from "framer-motion"
 import { ShieldCheck, Brain, Activity } from "lucide-react"

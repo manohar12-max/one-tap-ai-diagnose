@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react"
 import { useChat } from "@ai-sdk/react"
-import { HttpChatTransport } from "ai"
+import { DefaultChatTransport } from "ai"
 import { motion, AnimatePresence } from "framer-motion"
 import { 
   Send, 
@@ -29,12 +29,12 @@ export function DiagnosisChat({ initialDiagnosis, sessionId, onBack }: Props) {
   const [input, setInput] = useState("")
   const scrollRef = useRef<HTMLDivElement>(null)
   
-  const { messages, sendMessage, isLoading } = useChat({
-    transport: new HttpChatTransport({ 
+  const { messages, sendMessage, status } = useChat({
+    transport: new DefaultChatTransport({ 
       api: "/api/chat",
-      body: { chatSessionId: sessionId }
+      body: { chatSessionId: sessionId },
     }),
-    initialMessages: [
+    messages: [
       {
         id: "diagnosis-context",
         role: "system",
@@ -47,6 +47,8 @@ export function DiagnosisChat({ initialDiagnosis, sessionId, onBack }: Props) {
       }
     ],
   })
+  
+  const isLoading = status === "streaming" || status === "submitted"
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => setInput(e.target.value)
 
@@ -108,19 +110,19 @@ export function DiagnosisChat({ initialDiagnosis, sessionId, onBack }: Props) {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               className={cn(
                 "flex items-start gap-4 max-w-[85%]",
-                m.role === "user" ? "ml-auto flex-row-reverse" : ""
+                (m.role as string) === "user" ? "ml-auto flex-row-reverse" : ""
               )}
             >
               <div className={cn(
                 "w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 shadow-lg",
-                m.role === "user" ? "bg-primary text-white" : "bg-slate-900 text-primary"
+                (m.role as string) === "user" ? "bg-primary text-white" : "bg-slate-900 text-primary"
               )}>
-                {m.role === "user" ? <User size={20} /> : <Bot size={20} />}
+                {(m.role as string) === "user" ? <User size={20} /> : <Bot size={20} />}
               </div>
               
               <div className={cn(
                 "p-5 rounded-3xl text-sm font-medium leading-relaxed shadow-sm",
-                m.role === "user" 
+                (m.role as string) === "user" 
                   ? "bg-primary text-white rounded-tr-none" 
                   : "bg-secondary/50 text-foreground border border-border rounded-tl-none"
               )}>
