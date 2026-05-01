@@ -28,12 +28,25 @@ enum Status {
 }
 
 model User {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  email     String   @unique
-  name      String
-  role      Role     @default(PATIENT)
-  specialty String?
-  createdAt DateTime @default(now())
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  email           String   @unique
+  mobile          String   @unique
+  password        String
+  name            String
+  role            Role     @default(PATIENT)
+  isDetailsFilled Boolean  @default(false)
+  
+  // Doctor specific
+  specialty       String?
+  licenseNumber   String?
+  experience      Int?
+  
+  // Patient specific
+  age             Int?
+  gender          String?
+  medicalHistory  String?
+
+  createdAt       DateTime @default(now())
 
   patientAppointments Appointment[] @relation("Patient")
   doctorAppointments  Appointment[] @relation("Doctor")

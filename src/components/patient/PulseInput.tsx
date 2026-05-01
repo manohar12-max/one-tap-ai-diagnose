@@ -9,12 +9,25 @@ import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Loader2, Send, Activity, ShieldAlert, CheckCircle2, ChevronRight } from "lucide-react"
 
+import { useRouter } from "next/navigation"
+
 export function PulseInput() {
   const [symptoms, setSymptoms] = useState("")
+  const router = useRouter()
   const { object, submit, isLoading } = useObject({
     api: "/api/triage",
     schema: triageSchema,
   })
+
+  const handleAction = () => {
+    // Check if token exists in cookies or mock auth check
+    const hasToken = document.cookie.includes("token")
+    if (!hasToken) {
+      router.push("/login")
+      return
+    }
+    // Proceed with action
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -137,10 +150,17 @@ export function PulseInput() {
               </div>
 
               <div className="mt-12 flex flex-col sm:flex-row justify-end gap-4">
-                <Button variant="outline" className="h-14 px-8 rounded-2xl font-bold text-muted-foreground">
+                <Button 
+                  variant="outline" 
+                  className="h-14 px-8 rounded-2xl font-bold text-muted-foreground"
+                  onClick={handleAction}
+                >
                   Download Report (PDF)
                 </Button>
-                <Button className="h-14 px-10 rounded-2xl bg-primary hover:bg-primary/90 text-white font-black text-sm tracking-widest uppercase shadow-xl shadow-primary/20 group">
+                <Button 
+                  className="h-14 px-10 rounded-2xl bg-primary hover:bg-primary/90 text-white font-black text-sm tracking-widest uppercase shadow-xl shadow-primary/20 group"
+                  onClick={handleAction}
+                >
                   One-Tap Book Specialist
                   <ChevronRight size={18} className="ml-2 group-hover:translate-x-1 transition-transform" />
                 </Button>
