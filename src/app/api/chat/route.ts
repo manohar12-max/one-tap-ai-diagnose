@@ -77,7 +77,6 @@ export async function POST(req: Request) {
       }
     })
 
-    // @ts-ignore
     return result.toUIMessageStreamResponse()
   } catch (error) {
     console.error("Chat Error:", error)

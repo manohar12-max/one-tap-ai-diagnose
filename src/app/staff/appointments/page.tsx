@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
 import { ChatInterface } from "@/components/appointments/ChatInterface"
+import { ConfirmAppointmentModal } from "@/components/staff/ConfirmAppointmentModal"
 
 export default function AppointmentsPage() {
   const [appointments, setAppointments] = useState<any[]>([])
@@ -15,6 +16,8 @@ export default function AppointmentsPage() {
   const [selectedAppointment, setSelectedAppointment] = useState<any>(null)
   const [isChatOpen, setIsChatOpen] = useState(false)
   const [currentUser, setCurrentUser] = useState<any>(null)
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false)
+  const [appointmentToConfirm, setAppointmentToConfirm] = useState<any>(null)
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user") || "{}")
@@ -36,12 +39,7 @@ export default function AppointmentsPage() {
     }
   }
 
-  const handleConfirm = async (id: string) => {
-    const appointmentDate = prompt("Enter Appointment Date (YYYY-MM-DD):", new Date().toISOString().split('T')[0])
-    const timeSlot = prompt("Enter Time Slot (e.g. 10:00 AM):", "10:00 AM")
-
-    if (!appointmentDate || !timeSlot) return
-
+  const handleConfirm = async (id: string, appointmentDate: string, timeSlot: string) => {
     try {
       const res = await fetch(`/api/appointments/${id}/confirm`, {
         method: "PATCH",
@@ -144,7 +142,10 @@ export default function AppointmentsPage() {
                     {app.status === 'PENDING' ? (
                       <>
                         <Button 
-                          onClick={() => handleConfirm(app.id)}
+                          onClick={() => {
+                            setAppointmentToConfirm(app)
+                            setIsConfirmModalOpen(true)
+                          }}
                           className="h-12 rounded-2xl bg-primary hover:bg-primary/90 text-white font-black text-xs gap-2 shadow-lg shadow-primary/20"
                         >
                           <CheckCircle2 size={16} />
@@ -177,22 +178,40 @@ export default function AppointmentsPage() {
 
       <AnimatePresence>
         {isChatOpen && selectedAppointment && (
-          <motion.div
-            initial={{ x: "100%" }}
-            animate={{ x: 0 }}
-            exit={{ x: "100%" }}
-            transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="fixed inset-y-0 right-0 w-full lg:relative lg:inset-auto lg:w-[450px] z-50 lg:z-0"
-          >
-            <ChatInterface 
-              appointmentId={selectedAppointment.id}
-              currentUserId={currentUser.id}
-              doctorName={selectedAppointment.patient.name} // Showing patient name to doctor
-              onClose={() => setIsChatOpen(false)}
+          <>
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsChatOpen(false)}
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100]"
             />
-          </motion.div>
+            <motion.div
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              className="fixed inset-y-0 right-0 w-full md:w-[450px] bg-card z-[101]"
+            >
+              <ChatInterface 
+                appointmentId={selectedAppointment.id}
+                currentUserId={currentUser?.id || currentUser?._id}
+                partnerName={selectedAppointment.patient.name}
+                onClose={() => setIsChatOpen(false)}
+              />
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
+
+      {appointmentToConfirm && (
+        <ConfirmAppointmentModal 
+          isOpen={isConfirmModalOpen}
+          onClose={() => setIsConfirmModalOpen(false)}
+          patientName={appointmentToConfirm.patient.name}
+          onConfirm={(date, time) => handleConfirm(appointmentToConfirm.id, date, time)}
+        />
+      )}
     </div>
   )
 }

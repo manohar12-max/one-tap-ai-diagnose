@@ -375,8 +375,8 @@ export default function PatientDashboard() {
                   >
                     <ChatInterface 
                       appointmentId={selectedAppointment.id}
-                      currentUserId={currentUser.id}
-                      doctorName={selectedAppointment.doctor.name}
+                      currentUserId={currentUser?.id || currentUser?._id}
+                      partnerName={selectedAppointment.doctor.name}
                       onClose={() => setIsChatOpen(false)}
                     />
                   </motion.div>

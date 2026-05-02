@@ -4,9 +4,10 @@ import { getTokenFromRequest, verifyToken } from "@/lib/auth"
 
 export async function GET(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const token = getTokenFromRequest(req)
     if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     const payload = verifyToken(token)
@@ -15,7 +16,7 @@ export async function GET(
     // Verify user belongs to this appointment
     const appointment = await prisma.appointment.findFirst({
       where: {
-        id: params.id,
+        id: id,
         OR: [
           { patientId: payload.userId },
           { doctorId: payload.userId }
@@ -27,8 +28,9 @@ export async function GET(
       return NextResponse.json({ error: "Appointment not found or access denied" }, { status: 404 })
     }
 
+    // @ts-ignore - Prisma client needs regeneration to see this model
     const messages = await prisma.appointmentMessage.findMany({
-      where: { appointmentId: params.id },
+      where: { appointmentId: id },
       orderBy: { createdAt: "asc" },
       include: {
         sender: { select: { name: true, role: true } }

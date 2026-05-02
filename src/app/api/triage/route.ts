@@ -8,7 +8,19 @@ import { verifyToken } from "@/lib/auth"
 
 export async function POST(req: Request) {
   try {
-    const { bodyPart, symptoms, description, intensity, duration, images } = await req.json()
+    const json = await req.json()
+    let { bodyPart, symptoms, description, intensity, duration, images } = json
+    
+    // Ensure symptoms is an array
+    if (typeof symptoms === "string") symptoms = [symptoms]
+    if (!Array.isArray(symptoms)) symptoms = []
+    
+    // Provide defaults
+    bodyPart = bodyPart || "unspecified"
+    description = description || symptoms.join(", ") || "No description provided"
+    intensity = intensity || 5
+    duration = duration || "unknown"
+    images = images || []
     
     // Get user from auth token
     const cookieStore = await cookies()

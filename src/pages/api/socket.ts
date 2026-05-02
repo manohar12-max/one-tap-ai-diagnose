@@ -1,7 +1,6 @@
 import { Server as NetServer } from "http"
 import { NextApiRequest } from "next"
 import { Server as ServerIO } from "socket.io"
-import { prisma } from "@/lib/prisma"
 
 export const config = {
   api: {
@@ -9,53 +8,39 @@ export const config = {
   },
 }
 
+const globalForIo = global as unknown as { io: ServerIO }
+
 const SocketHandler = (req: NextApiRequest, res: any) => {
-  if (!res.socket.server.io) {
-    console.log("New Socket.io server... creating")
-    const httpServer: NetServer = res.socket.server as any
-    const io = new ServerIO(httpServer, {
-      path: "/api/socket",
-      addTrailingSlash: false,
-    })
-
-    io.on("connection", (socket) => {
-      console.log("Socket connected:", socket.id)
-
-      socket.on("join-room", (appointmentId: string) => {
-        socket.join(appointmentId)
-        console.log(`Socket ${socket.id} joined room: ${appointmentId}`)
-      })
-
-      socket.on("send-message", async (data: { appointmentId: string, senderId: string, content: string }) => {
-        const { appointmentId, senderId, content } = data
-        
-        try {
-          // Persist message to DB
-          const message = await prisma.appointmentMessage.create({
-            data: {
-              appointmentId,
-              senderId,
-              content,
-            },
-            include: {
-              sender: { select: { name: true, role: true } }
-            }
-          })
-
-          // Broadcast to the room
-          io.to(appointmentId).emit("new-message", message)
-        } catch (error) {
-          console.error("Socket message error:", error)
-        }
-      })
-
-      socket.on("disconnect", () => {
-        console.log("Socket disconnected:", socket.id)
-      })
-    })
-
-    res.socket.server.io = io
+  if (res.socket.server.io) {
+    console.log("[Socket] Server already attached, ensuring global sync")
+    globalForIo.io = res.socket.server.io
+    res.end()
+    return
   }
+
+  console.log("[Socket] Initializing Global Socket.io Server...")
+  const httpServer: NetServer = res.socket.server as any
+  const io = new ServerIO(httpServer, {
+    path: "/api/socket",
+    addTrailingSlash: false,
+    cors: { origin: "*", methods: ["GET", "POST"] },
+    transports: ["polling", "websocket"]
+  })
+
+  io.on("connection", (socket) => {
+    console.log("[Socket] Connection:", socket.id)
+    
+    socket.on("join-room", (roomId: string) => {
+      const cleanRoomId = String(roomId).trim()
+      socket.join(cleanRoomId)
+      console.log(`[Socket] ${socket.id} joined ${cleanRoomId}`)
+    })
+
+    socket.on("disconnect", () => console.log("[Socket] Disconnect:", socket.id))
+  })
+
+  res.socket.server.io = io
+  globalForIo.io = io // Expose globally for App Router access
   res.end()
 }
 

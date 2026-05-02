@@ -71,8 +71,8 @@ export function DiagnosisChat({ initialDiagnosis, sessionId, existingMessages = 
   useEffect(() => {
     console.log("Messages updated:", messages.length, "Status:", status)
     if (messages.length > 0) {
-      const last = messages[messages.length - 1]
-      console.log("Last message:", last.role, last.parts?.[0]?.text?.substring(0, 20))
+      const last = messages[messages.length - 1] as any
+      console.log("Last message:", last.role, last.parts?.[0]?.text?.substring(0, 20) || last.content?.substring(0, 20))
     }
   }, [messages, status])
   
@@ -95,19 +95,23 @@ export function DiagnosisChat({ initialDiagnosis, sessionId, existingMessages = 
   }
 
   const getMessageText = (m: any) => {
-    // Some versions or states might have content directly
+    // If content is a string, use it
     if (typeof m.content === 'string' && m.content.length > 0) return m.content
     
+    // If parts exist, iterate through them
     if (m.parts && Array.isArray(m.parts)) {
       return m.parts
         .map((p: any) => {
           if (typeof p === 'string') return p
-          if (p.type === "text" || p.text) return p.text || ""
+          if (p.text) return p.text
+          if (p.type === "text") return p.text || ""
           return ""
         })
         .join("")
     }
-    return ""
+
+    // Last resort fallbacks
+    return m.text || ""
   }
 
   useEffect(() => {

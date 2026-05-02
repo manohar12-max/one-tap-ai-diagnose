@@ -32,7 +32,14 @@ export function PulseInput() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!symptoms.trim()) return
-    submit({ symptoms })
+    // Triage API expects symptoms as an array
+    submit({ 
+      symptoms: [symptoms],
+      bodyPart: "unspecified",
+      description: symptoms,
+      intensity: 5,
+      duration: "unknown"
+    })
   }
 
   return (

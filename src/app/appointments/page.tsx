@@ -37,6 +37,38 @@ export default function PatientAppointmentsPage() {
     }
   }
 
+  const getUrgencyStyles = (dateStr: string, timeStr: string) => {
+    if (!dateStr || !timeStr) return { color: "text-emerald-500", glow: "" };
+    try {
+      const appDate = new Date(dateStr);
+      
+      // Handle HH:mm or HH:mm AM/PM
+      let hours = 0;
+      let minutes = 0;
+      
+      if (timeStr.includes("AM") || timeStr.includes("PM")) {
+        const [time, modifier] = timeStr.split(" ");
+        [hours, minutes] = time.split(":").map(Number);
+        if (modifier === "PM" && hours < 12) hours += 12;
+        if (modifier === "AM" && hours === 12) hours = 0;
+      } else {
+        [hours, minutes] = timeStr.split(":").map(Number);
+      }
+      
+      appDate.setHours(hours, minutes, 0, 0);
+      
+      const now = new Date();
+      const diffHours = (appDate.getTime() - now.getTime()) / (1000 * 60 * 60);
+      
+      if (diffHours < 0) return { color: "text-muted-foreground", glow: "" };
+      if (diffHours < 2) return { color: "text-red-500 font-black animate-pulse", glow: "shadow-[0_0_15px_rgba(239,68,68,0.3)] ring-2 ring-red-500/20" };
+      if (diffHours < 24) return { color: "text-amber-500 font-black", glow: "shadow-[0_0_10px_rgba(245,158,11,0.2)]" };
+      return { color: "text-emerald-500", glow: "" };
+    } catch (e) {
+      return { color: "text-emerald-500", glow: "" };
+    }
+  }
+
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
       <Navbar />
@@ -111,18 +143,37 @@ export default function PatientAppointmentsPage() {
                         </div>
                       </div>
 
-                      {app.status === 'IN_CONSULTATION' && (
-                        <div className="flex items-center gap-6 p-4 bg-emerald-500/5 rounded-2xl border border-emerald-500/10">
-                          <div className="flex items-center gap-2">
-                            <Calendar size={16} className="text-emerald-500" />
-                            <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600">{new Date(app.appointmentDate).toLocaleDateString()}</span>
+                      {app.status === 'IN_CONSULTATION' && (() => {
+                        const urgency = getUrgencyStyles(app.appointmentDate, app.timeSlot);
+                        return (
+                          <div className={cn(
+                            "flex items-center gap-6 p-4 rounded-2xl border transition-all duration-500",
+                            urgency.glow || "bg-emerald-500/5 border-emerald-500/10",
+                            urgency.color.includes("text-red-500") ? "bg-red-500/5 border-red-500/20" : 
+                            urgency.color.includes("text-amber-500") ? "bg-amber-500/5 border-amber-500/20" : 
+                            "bg-emerald-500/5 border-emerald-500/10"
+                          )}>
+                            <div className="flex items-center gap-2">
+                              <Calendar size={16} className={cn("shrink-0", urgency.color)} />
+                              <span className={cn("text-[10px] font-black uppercase tracking-widest", urgency.color)}>
+                                {new Date(app.appointmentDate).toLocaleDateString()}
+                              </span>
+                            </div>
+                            <div className={cn("flex items-center gap-2 border-l pl-6", urgency.color.includes("text-emerald") ? "border-emerald-500/20" : "border-current/20")}>
+                              <Clock size={16} className={cn("shrink-0", urgency.color)} />
+                              <span className={cn("text-[10px] font-black uppercase tracking-widest", urgency.color)}>
+                                {app.timeSlot}
+                              </span>
+                            </div>
+                            {urgency.color.includes("animate-pulse") && (
+                              <div className="ml-auto flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-500 text-white text-[8px] font-black uppercase tracking-tighter shadow-lg shadow-red-500/20">
+                                <Activity size={10} className="animate-spin" />
+                                Starting Soon
+                              </div>
+                            )}
                           </div>
-                          <div className="flex items-center gap-2 border-l border-emerald-500/20 pl-6">
-                            <Clock size={16} className="text-emerald-500" />
-                            <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600">{app.timeSlot}</span>
-                          </div>
-                        </div>
-                      )}
+                        )
+                      })()}
                     </div>
 
                     <div className="flex flex-col gap-3 justify-center md:w-48">
@@ -171,7 +222,7 @@ export default function PatientAppointmentsPage() {
               <ChatInterface 
                 appointmentId={selectedAppointment.id}
                 currentUserId={currentUser.id}
-                doctorName={selectedAppointment.doctor.name}
+                partnerName={selectedAppointment.doctor.name}
                 onClose={() => setIsChatOpen(false)}
               />
             </motion.div>
