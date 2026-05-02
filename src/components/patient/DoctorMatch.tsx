@@ -23,10 +23,12 @@ import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { toast } from "sonner"
+import { BookingModal } from "@/components/appointments/BookingModal"
 
 interface Props {
   specialty: string
   onBack: () => void
+  initialDiagnosis?: any
 }
 
 interface Doctor {
@@ -45,14 +47,20 @@ interface Doctor {
   lng?: number
 }
 
-export function DoctorMatch({ specialty, onBack }: Props) {
-  const [doctors, setDoctors] = useState<Doctor[]>([])
-  const [loading, setLoading] = useState(false)
+export function DoctorMatch({ specialty, onBack, initialDiagnosis }: Props) {
+  const [registeredDoctors, setRegisteredDoctors] = useState<Doctor[]>([])
+  const [osmDoctors, setOsmDoctors] = useState<Doctor[]>([])
+  const [loadingReg, setLoadingReg] = useState(false)
+  const [loadingOsm, setLoadingOsm] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [locationPermission, setLocationPermission] = useState<"prompt" | "granted" | "denied">("prompt")
   const [userCity, setUserCity] = useState<string>("")
   const [cityInput, setCityInput] = useState("")
   const [isLocationRequired, setIsLocationRequired] = useState(true)
+
+  // Booking Modal states
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false)
+  const [selectedDoctor, setSelectedDoctor] = useState<any>(null)
 
   useEffect(() => {
     const userData = JSON.parse(localStorage.getItem("user") || "{}")
@@ -64,31 +72,56 @@ export function DoctorMatch({ specialty, onBack }: Props) {
   }, [specialty])
 
   const fetchDoctors = async (params: { lat?: number; lng?: number; city?: string }) => {
-    setLoading(true)
+    setLoadingReg(true)
+    setLoadingOsm(true)
     setError(null)
-    try {
-      const response = await fetch("/api/doctors", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          specialty,
-          lat: params.lat,
-          lng: params.lng,
-          city: params.city
-        }),
-      })
+    setRegisteredDoctors([])
+    setOsmDoctors([])
+    
+    // 1. Fetch Registered Doctors FIRST (Fast)
+    const fetchRegistered = async () => {
+      try {
+        const res = await fetch("/api/doctors/registered", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ specialty, city: params.city }),
+        });
+        const data = res.ok ? await res.json() : { doctors: [] };
+        setRegisteredDoctors(data.doctors || []);
+        if (data.doctors?.length > 0) setIsLocationRequired(false);
+      } catch (err) {
+        console.error("Reg API Error:", err);
+      } finally {
+        setLoadingReg(false);
+      }
+    };
 
-      if (!response.ok) throw new Error("Failed to fetch doctors")
-      
-      const data = await response.json()
-      setDoctors(data.doctors || [])
-      setIsLocationRequired(false)
-    } catch (err) {
-      console.error("Error fetching doctors:", err)
-      setError("Could not find specialists. Please try a different city.")
-    } finally {
-      setLoading(false)
-    }
+    // 2. Fetch OSM Doctors SECOND (Slower)
+    const fetchOSM = async () => {
+      try {
+        const res = await fetch("/api/doctors/osm", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            specialty,
+            lat: params.lat,
+            lng: params.lng,
+            city: params.city
+          }),
+        });
+        const data = res.ok ? await res.json() : { doctors: [] };
+        setOsmDoctors(data.doctors || []);
+        if (data.doctors?.length > 0) setIsLocationRequired(false);
+      } catch (err) {
+        console.error("OSM API Error:", err);
+      } finally {
+        setLoadingOsm(false);
+      }
+    };
+
+    // Trigger both but they update independently
+    fetchRegistered();
+    fetchOSM();
   }
 
   const handleGetLocation = () => {
@@ -97,7 +130,8 @@ export function DoctorMatch({ specialty, onBack }: Props) {
       return
     }
 
-    setLoading(true)
+    setLoadingReg(true)
+    setLoadingOsm(true)
     navigator.geolocation.getCurrentPosition(
       (position) => {
         setLocationPermission("granted")
@@ -109,7 +143,8 @@ export function DoctorMatch({ specialty, onBack }: Props) {
       (err) => {
         console.error("Geolocation error:", err)
         setLocationPermission("denied")
-        setLoading(false)
+        setLoadingReg(false)
+        setLoadingOsm(false)
         toast.error("Location access denied. Please enter city manually.")
       }
     )
@@ -118,7 +153,8 @@ export function DoctorMatch({ specialty, onBack }: Props) {
   const handleManualCitySubmit = async () => {
     if (!cityInput.trim()) return;
     
-    setLoading(true)
+    setLoadingReg(true)
+    setLoadingOsm(true)
     try {
       // Save city to profile
       const res = await fetch("/api/user/details", {
@@ -136,11 +172,12 @@ export function DoctorMatch({ specialty, onBack }: Props) {
     } catch (err) {
       toast.error("Failed to save location")
     } finally {
-      setLoading(false)
+      setLoadingReg(false)
+      setLoadingOsm(false)
     }
   }
 
-  if (isLocationRequired && !loading) {
+  if (isLocationRequired && !loadingReg && !loadingOsm) {
     return (
       <div className="max-w-xl mx-auto py-20 px-4 text-center space-y-8">
         <motion.div
@@ -219,7 +256,7 @@ export function DoctorMatch({ specialty, onBack }: Props) {
                <h2 className="text-4xl md:text-5xl font-black text-foreground tracking-tight">
                 Nearby <span className="text-primary">Specialists</span>
               </h2>
-              {loading && <Loader2 size={24} className="animate-spin text-primary mt-2" />}
+              {(loadingReg || loadingOsm) && <Loader2 size={24} className="animate-spin text-primary mt-2" />}
             </div>
             <p className="text-muted-foreground font-medium text-lg">
               Verified <span className="text-foreground font-black underline decoration-primary/30 decoration-4">{specialty}</span> specialists in <span className="text-primary font-black uppercase">{userCity || "Your Area"}</span>.
@@ -244,118 +281,196 @@ export function DoctorMatch({ specialty, onBack }: Props) {
         </div>
       </div>
 
-      {error && (
-        <div className="p-4 rounded-2xl bg-red-500/5 border border-red-500/20 text-red-600 text-sm font-bold text-center">
-          {error}
-        </div>
-      )}
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <AnimatePresence mode="popLayout">
-          {loading ? (
-            [1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-64 rounded-[2rem] bg-secondary/20 animate-pulse border border-border" />
-            ))
-          ) : doctors.length > 0 ? (
-            doctors.map((doctor, i) => (
-              <motion.div
-                key={doctor.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.1 }}
-              >
-                <Card className="p-6 bg-card border-border hover:border-primary/40 transition-all duration-300 rounded-[2rem] shadow-xl group hover:shadow-primary/5 h-full flex flex-col justify-between">
-                  <div className="flex items-start gap-6">
-                    <div className="relative shrink-0">
-                      <div className="w-24 h-24 rounded-2xl overflow-hidden shadow-lg bg-secondary">
-                        <img 
-                          src={doctor.image} 
-                          alt={doctor.name} 
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
-                        />
-                      </div>
-                      <div className="absolute -bottom-2 -right-2 px-2 py-1 rounded-lg bg-background shadow-md flex items-center gap-1 text-primary border border-primary/20">
-                         <Star size={12} fill="currentColor" className="text-yellow-500" />
-                         <span className="text-[11px] font-black">{doctor.rating}</span>
-                      </div>
-                    </div>
-
-                    <div className="flex-1 space-y-3">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h3 className="text-xl font-black text-foreground group-hover:text-primary transition-colors leading-tight">{doctor.name}</h3>
-                          <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mt-1">{doctor.specialty}</p>
-                        </div>
-                        <div className="flex flex-col items-end gap-1">
-                          <Badge variant="secondary" className="text-[9px] font-black uppercase tracking-tighter bg-primary/10 text-primary border-0">
-                            {doctor.distance}
-                          </Badge>
-                          <span className="text-[9px] font-bold text-muted-foreground">{doctor.reviews} reviews</span>
-                        </div>
-                      </div>
-
-                      <div className="flex flex-wrap gap-2">
-                        {doctor.tags.map(tag => (
-                          <span key={tag} className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-secondary text-muted-foreground border border-border">
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-
-                      <div className="space-y-1.5 pt-1">
-                        <div className="flex items-start gap-2 text-[11px] font-bold text-muted-foreground leading-snug">
-                          <MapPin size={14} className="text-primary shrink-0 mt-0.5" />
-                          {doctor.location}
-                        </div>
-                        <div className="flex items-center gap-2 text-[11px] font-bold text-muted-foreground">
-                          <Award size={14} className="text-primary" />
-                          {doctor.experience}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="mt-6 pt-6 border-t border-border flex items-center justify-between">
-                    <div className="flex items-center gap-1">
-                      <span className="text-base font-black text-foreground">{doctor.rating || "N/A"}</span>
-                      <span className="text-[10px] font-bold text-muted-foreground">({doctor.reviews} reviews)</span>
-                    </div>
-                    <div className="flex gap-2">
-                       <Button 
-                        variant="ghost" 
-                        size="icon"
-                        className="rounded-xl border border-border hover:bg-secondary"
-                        asChild
-                      >
-                        <a href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(doctor.location)}`} target="_blank" rel="noopener noreferrer">
-                          <Navigation size={18} className="text-primary" />
-                        </a>
-                      </Button>
-                      <Button className="h-10 px-6 rounded-xl bg-primary hover:bg-primary/90 text-white font-black text-xs shadow-lg shadow-primary/20 gap-2">
-                        Book Now
-                        <ChevronRight size={14} />
-                      </Button>
-                    </div>
-                  </div>
-                </Card>
-              </motion.div>
-            ))
-          ) : (
-            <div className="col-span-full py-20 text-center space-y-4 bg-secondary/10 rounded-[3rem] border-2 border-dashed border-border">
-              <div className="w-16 h-16 bg-secondary rounded-full flex items-center justify-center mx-auto text-muted-foreground">
-                <Search size={32} />
-              </div>
-              <div className="space-y-1">
-                <h3 className="text-xl font-black text-foreground">No specialists found</h3>
-                <p className="text-muted-foreground font-medium">Try broadening your search or enabling location access.</p>
-              </div>
-              <Button onClick={() => fetchDoctors({ city: userCity })} variant="outline" className="rounded-xl font-black">
-                Retry Search
-              </Button>
+      <div className="space-y-12">
+        {/* Section 1: Platform Partners */}
+        <div className="space-y-6">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+              <ShieldCheck size={18} />
             </div>
-          )}
-        </AnimatePresence>
+            <h3 className="text-xl font-black text-foreground uppercase tracking-tight">Verified Platform Partners</h3>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {loadingReg ? (
+              [1, 2].map((i) => (
+                <div key={i} className="h-64 rounded-[2rem] bg-secondary/20 animate-pulse border border-border" />
+              ))
+            ) : registeredDoctors.length > 0 ? (
+              registeredDoctors.map((doctor, i) => (
+                <DoctorCard 
+                  key={doctor.id} 
+                  doctor={doctor} 
+                  index={i} 
+                  onBook={(doc) => {
+                    setSelectedDoctor(doc)
+                    setIsBookingModalOpen(true)
+                  }} 
+                />
+              ))
+            ) : !loadingReg && (
+              <div className="col-span-full p-8 text-center bg-secondary/5 rounded-2xl border border-dashed border-border text-muted-foreground text-sm font-bold italic">
+                No registered partners found in this area.
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Section 2: Local Clinics via OSM */}
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500">
+                <Building2 size={18} />
+              </div>
+              <h3 className="text-xl font-black text-foreground uppercase tracking-tight">Nearby Local Clinics</h3>
+            </div>
+            {loadingOsm && (
+              <div className="flex items-center gap-2 text-[10px] font-black text-blue-500 uppercase tracking-widest animate-pulse">
+                <Loader2 size={12} className="animate-spin" />
+                Scanning Area...
+              </div>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {loadingOsm && osmDoctors.length === 0 ? (
+              [1, 2, 3, 4].map((i) => (
+                <div key={i} className="h-64 rounded-[2rem] bg-secondary/20 animate-pulse border border-border" />
+              ))
+            ) : osmDoctors.length > 0 ? (
+              osmDoctors.map((doctor, i) => (
+                <DoctorCard 
+                  key={doctor.id} 
+                  doctor={doctor} 
+                  index={i} 
+                  onBook={(doc) => {
+                    setSelectedDoctor(doc)
+                    setIsBookingModalOpen(true)
+                  }} 
+                />
+              ))
+            ) : !loadingOsm && (
+              <div className="col-span-full py-20 text-center space-y-4 bg-secondary/10 rounded-[3rem] border-2 border-dashed border-border">
+                <div className="w-16 h-16 bg-secondary rounded-full flex items-center justify-center mx-auto text-muted-foreground">
+                  <Search size={32} />
+                </div>
+                <div className="space-y-1">
+                  <h3 className="text-xl font-black text-foreground">No local clinics found</h3>
+                  <p className="text-muted-foreground font-medium">Try broadening your search or enabling location access.</p>
+                </div>
+                <Button onClick={() => fetchDoctors({ city: userCity })} variant="outline" className="rounded-xl font-black">
+                  Retry Search
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
+
+      {selectedDoctor && (
+        <BookingModal 
+          isOpen={isBookingModalOpen} 
+          onClose={() => setIsBookingModalOpen(false)} 
+          doctor={{
+            id: selectedDoctor.id,
+            name: selectedDoctor.name,
+            specialty: selectedDoctor.specialty,
+            image: selectedDoctor.image
+          }}
+          initialDiagnosis={initialDiagnosis}
+        />
+      )}
     </div>
+  )
+}
+
+function DoctorCard({ doctor, index, onBook }: { doctor: Doctor, index: number, onBook: (doc: Doctor) => void }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.1 }}
+    >
+      <Card className="p-6 bg-card border-border hover:border-primary/40 transition-all duration-300 rounded-[2rem] shadow-xl group hover:shadow-primary/5 h-full flex flex-col justify-between">
+        <div className="flex items-start gap-6">
+          <div className="relative shrink-0">
+            <div className="w-24 h-24 rounded-2xl overflow-hidden shadow-lg bg-secondary">
+              <img 
+                src={doctor.image} 
+                alt={doctor.name} 
+                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
+              />
+            </div>
+            <div className="absolute -bottom-2 -right-2 px-2 py-1 rounded-lg bg-background shadow-md flex items-center gap-1 text-primary border border-primary/20">
+               <Star size={12} fill="currentColor" className="text-yellow-500" />
+               <span className="text-[11px] font-black">{doctor.rating}</span>
+            </div>
+          </div>
+
+          <div className="flex-1 space-y-3">
+            <div className="flex justify-between items-start">
+              <div>
+                <h3 className="text-xl font-black text-foreground group-hover:text-primary transition-colors leading-tight">{doctor.name}</h3>
+                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mt-1">{doctor.specialty}</p>
+              </div>
+              <div className="flex flex-col items-end gap-1">
+                <Badge variant="secondary" className="text-[9px] font-black uppercase tracking-tighter bg-primary/10 text-primary border-0">
+                  {doctor.distance}
+                </Badge>
+                <span className="text-[9px] font-bold text-muted-foreground">{doctor.reviews} reviews</span>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              {doctor.tags.map((tag, idx) => (
+                <span key={`${tag}-${idx}`} className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-secondary text-muted-foreground border border-border">
+                  {tag}
+                </span>
+              ))}
+            </div>
+
+            <div className="space-y-1.5 pt-1">
+              <div className="flex items-start gap-2 text-[11px] font-bold text-muted-foreground leading-snug">
+                <MapPin size={14} className="text-primary shrink-0 mt-0.5" />
+                {doctor.location}
+              </div>
+              {doctor.experience && (
+                <div className="flex items-center gap-2 text-[11px] font-bold text-muted-foreground">
+                  <Award size={14} className="text-primary" />
+                  {doctor.experience}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-6 pt-6 border-t border-border flex items-center justify-between">
+          <div className="flex items-center gap-1">
+            <span className="text-base font-black text-foreground">{doctor.rating || "N/A"}</span>
+            <span className="text-[10px] font-bold text-muted-foreground">({doctor.reviews} reviews)</span>
+          </div>
+          <div className="flex gap-2">
+             <Button 
+              variant="ghost" 
+              size="icon"
+              className="rounded-xl border border-border hover:bg-secondary"
+              asChild
+            >
+              <a href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(doctor.location)}`} target="_blank" rel="noopener noreferrer">
+                <Navigation size={18} className="text-primary" />
+              </a>
+            </Button>
+            <Button 
+              onClick={() => onBook(doctor)}
+              className="h-10 px-6 rounded-xl bg-primary hover:bg-primary/90 text-white font-black text-xs shadow-lg shadow-primary/20 gap-2"
+            >
+              Book Now
+              <ChevronRight size={14} />
+            </Button>
+          </div>
+        </div>
+      </Card>
+    </motion.div>
   )
 }

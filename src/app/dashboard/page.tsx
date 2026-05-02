@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import { 
   Activity, 
@@ -21,6 +22,9 @@ import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
+import { ChatInterface } from "@/components/appointments/ChatInterface"
+import { MessageSquare, Loader2 } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
 
 export default function PatientDashboard() {
   const [activeTab, setActiveTab] = useState("overview")
@@ -28,10 +32,28 @@ export default function PatientDashboard() {
 
   const [history, setHistory] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [isProfileIncomplete, setIsProfileIncomplete] = useState(false)
+  
+  const [appointments, setAppointments] = useState<any[]>([])
+  const [selectedAppointment, setSelectedAppointment] = useState<any>(null)
+  const [isChatOpen, setIsChatOpen] = useState(false)
+  const [currentUser, setCurrentUser] = useState<any>(null)
 
+  const router = useRouter()
   useEffect(() => {
     const userData = JSON.parse(localStorage.getItem("user") || "{}")
     if (userData.name) setUserName(userData.name)
+    
+    // Redirect Doctors/Admins to staff portal
+    if (userData.role === 'DOCTOR' || userData.role === 'ADMIN') {
+      router.push("/staff/dashboard")
+      return
+    }
+
+    // Check for incomplete profile (missing age or gender)
+    if (!userData.age || !userData.gender) {
+      setIsProfileIncomplete(true)
+    }
     
     const fetchHistory = async () => {
       try {
@@ -46,7 +68,23 @@ export default function PatientDashboard() {
         setIsLoading(false)
       }
     }
+
+    const fetchAppointments = async () => {
+      try {
+        const res = await fetch("/api/appointments")
+        if (res.ok) {
+          const data = await res.json()
+          setAppointments(data)
+        }
+      } catch (error) {
+        console.error("Failed to fetch appointments:", error)
+      }
+    }
+
+
+    setCurrentUser(userData)
     fetchHistory()
+    fetchAppointments()
   }, [])
 
   const containerVariants = {
@@ -84,10 +122,24 @@ export default function PatientDashboard() {
           </div>
           
           <div className="flex items-center gap-4">
-             <Button variant="outline" className="rounded-2xl h-12 px-6 border-border bg-card/50 backdrop-blur-sm font-bold text-xs tracking-widest uppercase">
-               <Settings size={18} className="mr-2" />
-               Profile Settings
-             </Button>
+             <Link href="/profile-settings">
+               <Button variant="outline" className={cn(
+                 "rounded-2xl h-12 px-6 border-border bg-card/50 backdrop-blur-sm font-bold text-xs tracking-widest uppercase relative",
+                 isProfileIncomplete && "border-red-500/50 text-red-500 hover:text-red-600 hover:bg-red-500/5"
+               )}>
+                 <Settings size={18} className={cn("mr-2", isProfileIncomplete && "animate-spin-slow")} />
+                 {isProfileIncomplete ? "Complete Profile" : "Profile Settings"}
+                 
+                 {isProfileIncomplete && (
+                   <span className="absolute -top-1 -right-1 flex h-4 w-4">
+                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                     <span className="relative inline-flex rounded-full h-4 w-4 bg-red-500 items-center justify-center">
+                       <AlertCircle size={10} className="text-white" />
+                     </span>
+                   </span>
+                 )}
+               </Button>
+             </Link>
           </div>
         </div>
 
@@ -241,27 +293,96 @@ export default function PatientDashboard() {
             </Card>
 
             {/* Upcoming Appointments */}
-            <Card className="p-8 bg-primary text-white rounded-[2.5rem] shadow-2xl shadow-primary/20">
-               <div className="flex items-center gap-4 mb-8">
-                  <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center">
-                    <Calendar size={24} />
-                  </div>
-                  <div>
-                    <h3 className="font-black text-sm uppercase tracking-widest">Next Appointment</h3>
-                    <p className="text-white/60 text-xs font-bold">Tomorrow, 10:30 AM</p>
-                  </div>
-               </div>
-               <div className="space-y-4">
-                  <div className="p-4 rounded-2xl bg-white/10 border border-white/10">
-                    <p className="text-xs font-bold text-white/80 uppercase tracking-widest mb-2">Doctor</p>
-                    <p className="font-black text-lg">Dr. Sarah Mitchell</p>
-                    <p className="text-sm text-white/60">Senior Cardiologist</p>
-                  </div>
-                  <Button className="w-full h-14 rounded-2xl bg-white text-primary hover:bg-white/90 font-black text-xs tracking-[0.2em] uppercase">
-                    JOIN VIRTUAL ROOM
-                  </Button>
-               </div>
-            </Card>
+            <div className="space-y-6">
+              <div className="flex justify-between items-center px-2">
+                <h3 className="text-xl font-black tracking-tight flex items-center gap-2 uppercase text-xs tracking-[0.2em] text-muted-foreground">
+                  <Calendar size={16} />
+                  Latest Consultations
+                </h3>
+                <Link href="/appointments">
+                  <Button variant="ghost" className="text-primary font-bold text-sm hover:bg-primary/5">View All</Button>
+                </Link>
+              </div>
+              {appointments.length > 0 ? (
+                appointments.map((app) => (
+                  <Card key={app.id} className={cn(
+                    "p-8 rounded-[2.5rem] shadow-2xl relative overflow-hidden transition-all",
+                    app.status === 'IN_CONSULTATION' ? "bg-primary text-white" : "bg-card/60 border-border"
+                  )}>
+                    <div className="flex items-center gap-4 mb-6">
+                      <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center", app.status === 'IN_CONSULTATION' ? "bg-white/20" : "bg-primary/10 text-primary")}>
+                        <Calendar size={24} />
+                      </div>
+                      <div>
+                        <h3 className={cn("font-black text-xs uppercase tracking-widest", app.status === 'IN_CONSULTATION' ? "text-white" : "text-foreground")}>
+                          {app.status === 'IN_CONSULTATION' ? 'Confirmed Appointment' : 'Requested'}
+                        </h3>
+                        <p className={cn("text-xs font-bold", app.status === 'IN_CONSULTATION' ? "text-white/60" : "text-muted-foreground")}>
+                          {app.appointmentDate ? `${new Date(app.appointmentDate).toLocaleDateString()}, ${app.timeSlot}` : 'Awaiting confirmation'}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="space-y-4">
+                      <div className={cn("p-4 rounded-2xl", app.status === 'IN_CONSULTATION' ? "bg-white/10 border border-white/10" : "bg-secondary/50 border border-border")}>
+                        <p className={cn("text-[9px] font-black uppercase tracking-widest mb-1", app.status === 'IN_CONSULTATION' ? "text-white/50" : "text-muted-foreground")}>Doctor</p>
+                        <p className="font-black text-base">{app.doctor.name}</p>
+                        <p className={cn("text-xs font-bold", app.status === 'IN_CONSULTATION' ? "text-white/60" : "text-primary/70")}>{app.doctor.specialty}</p>
+                      </div>
+                      
+                      {app.status === 'IN_CONSULTATION' ? (
+                        <Button 
+                          onClick={() => {
+                            setSelectedAppointment(app)
+                            setIsChatOpen(true)
+                          }}
+                          className="w-full h-14 rounded-2xl bg-white text-primary hover:bg-white/90 font-black text-xs tracking-[0.2em] uppercase"
+                        >
+                          <MessageSquare size={16} className="mr-2" />
+                          Chat with Doctor
+                        </Button>
+                      ) : (
+                        <Badge variant="outline" className="w-full justify-center py-3 rounded-xl border-amber-500/20 text-amber-500 font-black text-[10px] uppercase tracking-widest">
+                          Pending Confirmation
+                        </Badge>
+                      )}
+                    </div>
+                  </Card>
+                ))
+              ) : (
+                <div className="p-8 text-center bg-secondary/10 rounded-[2rem] border border-dashed border-border">
+                  <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">No appointments scheduled</p>
+                </div>
+              )}
+            </div>
+
+            {/* Chat Overlay */}
+            <AnimatePresence>
+              {isChatOpen && selectedAppointment && (
+                <>
+                  <motion.div 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    onClick={() => setIsChatOpen(false)}
+                    className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100]"
+                  />
+                  <motion.div
+                    initial={{ x: "100%" }}
+                    animate={{ x: 0 }}
+                    exit={{ x: "100%" }}
+                    transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                    className="fixed inset-y-0 right-0 w-full md:w-[450px] bg-card z-[101]"
+                  >
+                    <ChatInterface 
+                      appointmentId={selectedAppointment.id}
+                      currentUserId={currentUser.id}
+                      doctorName={selectedAppointment.doctor.name}
+                      onClose={() => setIsChatOpen(false)}
+                    />
+                  </motion.div>
+                </>
+              )}
+            </AnimatePresence>
 
             {/* Quick Actions Footer */}
             <div className="flex gap-4">

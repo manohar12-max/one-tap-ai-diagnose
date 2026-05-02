@@ -34,10 +34,12 @@ export default function LoginPage() {
       if (res.ok) {
         localStorage.setItem("user", JSON.stringify(data.user))
         toast.success(`Welcome back, ${data.user.name}!`, {
-          description: "Logged in successfully.",
+          description: data.user.role === 'DOCTOR' ? "Opening Clinical Dashboard..." : "Reviewing your clinical profile...",
         })
-        
-        if (!data.user.isDetailsFilled) {
+
+        if (data.user.role === 'DOCTOR') {
+          router.push("/staff/dashboard")
+        } else if (!data.user.isDetailsFilled) {
           router.push("/onboarding")
         } else {
           router.push("/dashboard")
@@ -62,7 +64,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-transparent relative overflow-hidden transition-colors duration-300">
       <Navbar />
-      
+
       <div className="flex items-center justify-center p-6 min-h-[calc(100vh-64px)]">
         {/* Background Glow */}
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/10 blur-[120px] rounded-full" />

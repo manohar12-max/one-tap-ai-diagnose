@@ -3,6 +3,60 @@ import { prisma } from "@/lib/prisma"
 import { verifyToken } from "@/lib/auth"
 import { cookies } from "next/headers"
 
+export async function GET() {
+  try {
+    const token = (await cookies()).get("token")?.value
+    if (!token) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    const payload = verifyToken(token)
+    if (!payload) {
+      return NextResponse.json({ error: "Invalid token" }, { status: 401 })
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: payload.userId },
+      select: {
+        id: true,
+        email: true,
+        mobile: true,
+        name: true,
+        role: true,
+        isDetailsFilled: true,
+        city: true,
+        age: true,
+        gender: true,
+        bloodGroup: true,
+        height: true,
+        weight: true,
+        medicalHistory: true,
+        allergies: true,
+        chronicConditions: true,
+        currentMedications: true,
+        emergencyContact: true,
+        specialty: true,
+        licenseNumber: true,
+        experience: true,
+        degree: true,
+        clinicName: true,
+        clinicAddress: true,
+        consultationFee: true,
+        bio: true,
+      }
+    })
+
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 })
+    }
+
+    return NextResponse.json(user)
+  } catch (error) {
+    console.error("Fetch user details error:", error)
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 })
+  }
+}
+
 export async function POST(req: Request) {
   try {
     const token = (await cookies()).get("token")?.value

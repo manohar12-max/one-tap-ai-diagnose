@@ -29,3 +29,22 @@ export const hashPassword = async (password: string) => {
 export const comparePassword = async (password: string, hashed: string) => {
   return bcrypt.compare(password, hashed)
 }
+
+export const getTokenFromRequest = (req: Request) => {
+  // Check Authorization header first
+  const authHeader = req.headers.get("Authorization")
+  if (authHeader && authHeader.startsWith("Bearer ")) {
+    return authHeader.split(" ")[1]
+  }
+
+  // Check cookies
+  const cookieHeader = req.headers.get("cookie")
+  if (cookieHeader) {
+    const cookies = Object.fromEntries(
+      cookieHeader.split(";").map(c => c.trim().split("="))
+    )
+    return cookies["token"]
+  }
+
+  return null
+}

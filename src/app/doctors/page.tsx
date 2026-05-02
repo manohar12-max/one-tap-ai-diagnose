@@ -18,7 +18,8 @@ import {
   CheckCircle2,
   Building2,
   ChevronDown,
-  X
+  X,
+  ArrowLeft
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -27,6 +28,7 @@ import { Badge } from "@/components/ui/badge"
 import { Navbar } from "@/components/Navbar"
 import { MedicalBackground } from "@/components/MedicalBackground"
 import { toast } from "sonner"
+import { BookingModal } from "@/components/appointments/BookingModal"
 
 const SPECIALTIES = [
   "Cardiologist",
@@ -48,13 +50,19 @@ const SPECIALTIES = [
 export default function FindDoctorsPage() {
   const [searchSpecialty, setSearchSpecialty] = useState("")
   const [searchCity, setSearchCity] = useState("")
-  const [doctors, setDoctors] = useState<any[]>([])
-  const [loading, setLoading] = useState(false)
+  const [registeredDoctors, setRegisteredDoctors] = useState<any[]>([])
+  const [osmDoctors, setOsmDoctors] = useState<any[]>([])
+  const [loadingReg, setLoadingReg] = useState(false)
+  const [loadingOsm, setLoadingOsm] = useState(false)
   const [filter, setFilter] = useState<"all" | "registered" | "nearby">("all")
   
   // Dropdown states
   const [showDropdown, setShowDropdown] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
+
+  // Booking Modal states
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false)
+  const [selectedDoctor, setSelectedDoctor] = useState<any>(null)
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -77,19 +85,47 @@ export default function FindDoctorsPage() {
   }, [])
 
   const fetchDoctors = async (city: string, specialty: string) => {
-    setLoading(true)
-    try {
-      const res = await fetch("/api/doctors", {
-        method: "POST",
-        body: JSON.stringify({ city, specialty }),
-      })
-      const data = await res.json()
-      setDoctors(data.doctors || [])
-    } catch (err) {
-      toast.error("Failed to load specialists")
-    } finally {
-      setLoading(false)
-    }
+    setLoadingReg(true)
+    setLoadingOsm(true)
+    setRegisteredDoctors([])
+    setOsmDoctors([])
+    
+    // 1. Fetch Registered (Fast)
+    const fetchRegistered = async () => {
+      try {
+        const res = await fetch("/api/doctors/registered", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ city, specialty }),
+        });
+        const data = res.ok ? await res.json() : { doctors: [] };
+        setRegisteredDoctors(data.doctors || []);
+      } catch (err) {
+        console.error("Reg API Error:", err);
+      } finally {
+        setLoadingReg(false);
+      }
+    };
+
+    // 2. Fetch OSM (Slower)
+    const fetchOSM = async () => {
+      try {
+        const res = await fetch("/api/doctors/osm", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ city, specialty }),
+        });
+        const data = res.ok ? await res.json() : { doctors: [] };
+        setOsmDoctors(data.doctors || []);
+      } catch (err) {
+        console.error("OSM API Error:", err);
+      } finally {
+        setLoadingOsm(false);
+      }
+    };
+
+    fetchRegistered();
+    fetchOSM();
   }
 
   const handleSearch = (e: React.FormEvent) => {
@@ -102,18 +138,36 @@ export default function FindDoctorsPage() {
     s.toLowerCase().includes(searchSpecialty.toLowerCase())
   )
 
-  const filteredDoctors = doctors.filter(doc => {
-    if (filter === "registered") return doc.isRegistered
-    if (filter === "nearby") return !doc.isRegistered
-    return true
-  })
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
       <MedicalBackground />
       <Navbar />
 
-      <main className="relative z-10 pt-20 pb-32 px-6">
+      {selectedDoctor && (
+        <BookingModal 
+          isOpen={isBookingModalOpen} 
+          onClose={() => setIsBookingModalOpen(false)} 
+          doctor={{
+            id: selectedDoctor.id,
+            name: selectedDoctor.name,
+            specialty: selectedDoctor.specialty,
+            image: selectedDoctor.image
+          }}
+        />
+      )}
+
+      <main className="relative z-10 pt-12 pb-32 px-6">
+        <div className="max-w-6xl mx-auto mb-10">
+          <Button 
+            variant="ghost" 
+            onClick={() => window.history.back()}
+            className="text-muted-foreground hover:text-primary -ml-4 gap-2 font-bold mb-6"
+          >
+            <ArrowLeft size={18} />
+            Back
+          </Button>
+        </div>
         <div className="max-w-6xl mx-auto mb-16 text-center space-y-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -231,104 +285,186 @@ export default function FindDoctorsPage() {
           </div>
         </div>
 
-        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          <AnimatePresence mode="popLayout">
-            {loading ? (
-              [1, 2, 3, 4, 5, 6].map((i) => (
-                <div key={i} className="h-80 rounded-[2.5rem] bg-secondary/20 animate-pulse border border-border" />
-              ))
-            ) : filteredDoctors.length > 0 ? (
-              filteredDoctors.map((doc, i) => (
-                <motion.div
-                  key={doc.id}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: i * 0.05 }}
-                >
-                  <Card className={`p-6 bg-card border-border hover:border-primary/40 transition-all duration-500 rounded-[2.5rem] shadow-xl group hover:shadow-primary/5 h-full flex flex-col justify-between relative overflow-hidden ${doc.isRegistered ? 'ring-2 ring-primary/20' : ''}`}>
-                    {doc.isRegistered && (
-                      <div className="absolute top-0 right-0 px-6 py-2 bg-primary text-white text-[9px] font-black uppercase tracking-[0.2em] rounded-bl-3xl flex items-center gap-1.5 shadow-xl">
-                        <CheckCircle2 size={12} />
-                        Priority Verified
-                      </div>
-                    )}
-
-                    <div className="space-y-6">
-                      <div className="flex items-center gap-5">
-                        <div className="relative">
-                          <div className="w-20 h-20 rounded-2xl overflow-hidden bg-secondary shadow-inner">
-                            <img src={doc.image} alt={doc.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                          </div>
-                          <div className="absolute -bottom-2 -right-2 px-2 py-1 rounded-lg bg-background shadow-md border border-border flex items-center gap-1">
-                            <Star size={10} fill="currentColor" className="text-yellow-500" />
-                            <span className="text-[10px] font-black">{doc.rating}</span>
-                          </div>
-                        </div>
-                        <div className="space-y-1">
-                          <h3 className="text-lg font-black text-foreground group-hover:text-primary transition-colors line-clamp-1">{doc.name}</h3>
-                          <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">{doc.specialty}</p>
-                          <div className="flex items-center gap-1.5 text-primary">
-                            <Award size={14} />
-                            <span className="text-[11px] font-bold">{doc.experience}</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="space-y-3">
-                        <div className="flex items-start gap-2 text-xs font-medium text-muted-foreground bg-secondary/30 p-4 rounded-2xl border border-border/50">
-                          <MapPin size={16} className="text-primary shrink-0 mt-0.5" />
-                          <div className="space-y-1">
-                            <p className="font-bold text-foreground leading-tight">{doc.location}</p>
-                            <p className="text-[10px] font-black text-primary uppercase tracking-tighter">{doc.distance}</p>
-                          </div>
-                        </div>
-
-                        <div className="flex flex-wrap gap-2">
-                          {doc.tags.map((tag: string) => (
-                            <Badge key={tag} variant="secondary" className="text-[9px] font-black uppercase bg-primary/5 text-primary border-primary/10">
-                              {tag}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="mt-8 flex gap-3">
-                      <Button 
-                        variant="ghost" 
-                        size="icon"
-                        className="h-12 w-12 rounded-2xl border border-border hover:bg-secondary transition-all"
-                        asChild
-                      >
-                         <a href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(doc.location)}`} target="_blank" rel="noopener noreferrer">
-                          <Navigation size={20} className="text-primary" />
-                        </a>
-                      </Button>
-                      <Button className="flex-1 h-12 rounded-2xl bg-primary hover:bg-primary/90 text-white font-black text-xs gap-2 shadow-lg shadow-primary/20">
-                        {doc.isRegistered ? "Book Appointment" : "Consult Now"}
-                        <ChevronRight size={14} />
-                      </Button>
-                    </div>
-                  </Card>
-                </motion.div>
-              ))
-            ) : (
-              <div className="col-span-full py-24 text-center space-y-6 bg-card/30 backdrop-blur-xl rounded-[3rem] border-2 border-dashed border-border">
-                <div className="w-20 h-20 bg-secondary rounded-3xl flex items-center justify-center mx-auto text-muted-foreground">
-                  <Search size={40} />
+        <div className="max-w-6xl mx-auto space-y-16">
+          {/* Section 1: Platform Partners (Visible in 'all' and 'registered' filters) */}
+          {(filter === "all" || filter === "registered") && (
+            <div className="space-y-8">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                  <ShieldCheck size={20} />
                 </div>
-                <div className="space-y-2">
-                  <h3 className="text-2xl font-black text-foreground">No specialists match your search</h3>
-                  <p className="text-muted-foreground font-medium max-w-md mx-auto">Try broadening your specialty or searching in a different city.</p>
+                <div>
+                  <h2 className="text-2xl font-black text-foreground uppercase tracking-tight">One-Tap Verified Partners</h2>
+                  <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mt-0.5">Priority Booking • Instant Confirmation</p>
                 </div>
-                <Button onClick={() => { setSearchSpecialty(""); fetchDoctors(searchCity, ""); }} variant="outline" className="h-12 px-8 rounded-xl font-black">
-                  Reset Filters
-                </Button>
               </div>
-            )}
-          </AnimatePresence>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {loadingReg ? (
+                  [1, 2, 3].map((i) => (
+                    <div key={i} className="h-80 rounded-[2.5rem] bg-secondary/20 animate-pulse border border-border" />
+                  ))
+                ) : registeredDoctors.length > 0 ? (
+                  registeredDoctors.map((doc, i) => (
+                    <DoctorCard 
+                      key={doc.id} 
+                      doctor={doc} 
+                      index={i} 
+                      onBook={() => {
+                        setSelectedDoctor(doc)
+                        setIsBookingModalOpen(true)
+                      }}
+                    />
+                  ))
+                ) : !loadingReg && filter === "registered" && (
+                  <EmptyState city={searchCity} onReset={() => { setSearchSpecialty(""); fetchDoctors(searchCity, ""); }} />
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Section 2: Local Clinics (Visible in 'all' and 'nearby' filters) */}
+          {(filter === "all" || filter === "nearby") && (
+            <div className="space-y-8">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500">
+                    <Building2 size={20} />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-black text-foreground uppercase tracking-tight">Nearby Local Clinics</h2>
+                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mt-0.5">Public Health Data • Hospital Directory</p>
+                  </div>
+                </div>
+                {loadingOsm && (
+                  <div className="flex items-center gap-2 text-[10px] font-black text-blue-500 uppercase tracking-widest animate-pulse">
+                    <Loader2 size={12} className="animate-spin" />
+                    Scanning Area...
+                  </div>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {loadingOsm && osmDoctors.length === 0 ? (
+                  [1, 2, 3, 4, 5, 6].map((i) => (
+                    <div key={i} className="h-80 rounded-[2.5rem] bg-secondary/20 animate-pulse border border-border" />
+                  ))
+                ) : osmDoctors.length > 0 ? (
+                  osmDoctors.map((doc, i) => (
+                    <DoctorCard 
+                      key={doc.id} 
+                      doctor={doc} 
+                      index={i} 
+                      onBook={() => {
+                        setSelectedDoctor(doc)
+                        setIsBookingModalOpen(true)
+                      }}
+                    />
+                  ))
+                ) : !loadingOsm && (filter === "nearby" || (filter === "all" && registeredDoctors.length === 0)) && (
+                  <EmptyState city={searchCity} onReset={() => { setSearchSpecialty(""); fetchDoctors(searchCity, ""); }} />
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </main>
+    </div>
+  )
+}
+
+function DoctorCard({ doctor, index, onBook }: { doctor: any, index: number, onBook: () => void }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ delay: index * 0.05 }}
+    >
+      <Card className={`p-6 bg-card border-border hover:border-primary/40 transition-all duration-500 rounded-[2.5rem] shadow-xl group hover:shadow-primary/5 h-full flex flex-col justify-between relative overflow-hidden ${doctor.isRegistered ? 'ring-2 ring-primary/20' : ''}`}>
+        {doctor.isRegistered && (
+          <div className="absolute top-0 right-0 px-6 py-2 bg-primary text-white text-[9px] font-black uppercase tracking-[0.2em] rounded-bl-3xl flex items-center gap-1.5 shadow-xl">
+            <CheckCircle2 size={12} />
+            Priority Verified
+          </div>
+        )}
+
+        <div className="space-y-6">
+          <div className="flex items-center gap-5">
+            <div className="relative">
+              <div className="w-20 h-20 rounded-2xl overflow-hidden bg-secondary shadow-inner">
+                <img src={doctor.image} alt={doctor.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+              </div>
+              <div className="absolute -bottom-2 -right-2 px-2 py-1 rounded-lg bg-background shadow-md border border-border flex items-center gap-1">
+                <Star size={10} fill="currentColor" className="text-yellow-500" />
+                <span className="text-[10px] font-black">{doctor.rating}</span>
+              </div>
+            </div>
+            <div className="space-y-1">
+              <h3 className="text-lg font-black text-foreground group-hover:text-primary transition-colors line-clamp-1">{doctor.name}</h3>
+              <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">{doctor.specialty}</p>
+              <div className="flex items-center gap-1.5 text-primary">
+                <Award size={14} />
+                <span className="text-[11px] font-bold">{doctor.experience || "Available"}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <div className="flex items-start gap-2 text-xs font-medium text-muted-foreground bg-secondary/30 p-4 rounded-2xl border border-border/50">
+              <MapPin size={16} className="text-primary shrink-0 mt-0.5" />
+              <div className="space-y-1">
+                <p className="font-bold text-foreground leading-tight">{doctor.location}</p>
+                <p className="text-[10px] font-black text-primary uppercase tracking-tighter">{doctor.distance || "Nearby"}</p>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              {doctor.tags?.map((tag: string, idx: number) => (
+                <Badge key={`${tag}-${idx}`} variant="secondary" className="text-[9px] font-black uppercase bg-primary/5 text-primary border-primary/10">
+                  {tag}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-8 flex gap-3">
+          <Button 
+            variant="ghost" 
+            size="icon"
+            className="h-12 w-12 rounded-2xl border border-border hover:bg-secondary transition-all"
+            asChild
+          >
+             <a href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(doctor.location)}`} target="_blank" rel="noopener noreferrer">
+              <Navigation size={20} className="text-primary" />
+            </a>
+          </Button>
+          <Button 
+            onClick={onBook}
+            className="flex-1 h-12 rounded-2xl bg-primary hover:bg-primary/90 text-white font-black text-xs gap-2 shadow-lg shadow-primary/20"
+          >
+            {doctor.isRegistered ? "Book Appointment" : "Consult Now"}
+            <ChevronRight size={14} />
+          </Button>
+        </div>
+      </Card>
+    </motion.div>
+  )
+}
+
+function EmptyState({ city, onReset }: { city: string, onReset: () => void }) {
+  return (
+    <div className="col-span-full py-24 text-center space-y-6 bg-card/30 backdrop-blur-xl rounded-[3rem] border-2 border-dashed border-border">
+      <div className="w-20 h-20 bg-secondary rounded-3xl flex items-center justify-center mx-auto text-muted-foreground">
+        <Search size={40} />
+      </div>
+      <div className="space-y-2">
+        <h3 className="text-2xl font-black text-foreground">No specialists found</h3>
+        <p className="text-muted-foreground font-medium max-w-md mx-auto">Try broadening your specialty or searching in a different city.</p>
+      </div>
+      <Button onClick={onReset} variant="outline" className="h-12 px-8 rounded-xl font-black">
+        Reset Filters
+      </Button>
     </div>
   )
 }

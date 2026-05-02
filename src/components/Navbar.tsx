@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter, usePathname } from "next/navigation"
-import { Activity, Search, Menu, LogOut, User, LayoutDashboard, Sparkles, ChevronDown, Bell } from "lucide-react"
+import { HeartPulse, Search, Menu, LogOut, User, LayoutDashboard, Sparkles, ChevronDown, Bell, History, Calendar } from "lucide-react"
 import { ModeToggle } from "./ModeToggle"
 import { Button } from "./ui/button"
 import { toast } from "sonner"
@@ -52,30 +52,36 @@ export function Navbar() {
   // Dynamic Nav Links based on Auth State
   const navLinks = user 
     ? [
-        { name: "Dashboard", href: "/dashboard", icon: <LayoutDashboard size={14} /> },
-        { name: "AI Diagnose", href: "/diagnose", icon: <Sparkles size={14} />, isLive: true },
-        { name: "Find Doctors", href: "/doctors", icon: <Search size={14} />, isLive: true },
+        { 
+          name: "Dashboard", 
+          href: (user.role === 'DOCTOR' || user.role === 'ADMIN') ? "/staff/dashboard" : "/dashboard", 
+          icon: <LayoutDashboard size={14} /> 
+        },
+        { name: "AI", href: "/diagnose", icon: <Sparkles size={14} />, isLive: true },
+        { name: "Doctors", href: "/doctors", icon: <Search size={14} />, isLive: true },
+        { name: "History", href: "/history", icon: <History size={14} /> },
+        { name: "Bookings", href: "/appointments", icon: <Calendar size={14} /> },
         { name: "Consult", href: "/consult", isComingSoon: true },
       ]
     : [
         { name: "Home", href: "/", icon: null },
-        { name: "AI Diagnose", href: "/diagnose", icon: <Sparkles size={14} />, isLive: true },
-        { name: "Find Doctors", href: "/doctors", icon: <Search size={14} />, isLive: true },
+        { name: "AI", href: "/diagnose", icon: <Sparkles size={14} />, isLive: true },
+        { name: "Doctors", href: "/doctors", icon: <Search size={14} />, isLive: true },
         { name: "Consult", href: "/consult", isComingSoon: true },
       ]
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60 transition-all duration-300">
-      <div className="container mx-auto px-4 lg:px-8 h-12 flex items-center justify-between py-0.5">
-        <div className="flex items-center gap-10">
+      <div className="container mx-auto px-4 lg:px-6 h-12 flex items-center justify-between">
+        <div className="flex items-center gap-4">
           <Link href="/" className="flex items-center gap-2 font-black text-lg text-primary group">
-            <div className="bg-primary text-white p-1 rounded-lg group-hover:rotate-12 transition-all duration-300 shadow-lg shadow-primary/20">
-              <Activity className="h-4 w-4" />
+            <div className="bg-primary text-white p-1 rounded-lg group-hover:rotate-12 transition-all duration-300">
+              <HeartPulse className="h-4 w-4" />
             </div>
-            <span className="hidden sm:inline-block tracking-tighter">One Tap AI <span className="text-foreground">Diagnose</span></span>
+            <span className="hidden sm:inline-block tracking-tighter">One Tap AI</span>
           </Link>
           
-          <div className="hidden lg:flex items-center gap-1 p-1 bg-secondary/50 rounded-2xl border border-border">
+          <div className="hidden lg:flex items-center gap-1 p-0.5 bg-secondary/30 rounded-xl border border-border">
              {navLinks.map((link) => {
                const isActive = pathname === link.href
                return (
@@ -84,9 +90,9 @@ export function Navbar() {
                    href={link.href}
                    onClick={(e) => link.isComingSoon && handleComingSoon(e, link.name)}
                    className={`
-                     px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-500 flex items-center gap-2
+                     px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all duration-500 flex items-center gap-1.5
                      ${isActive 
-                       ? 'bg-primary text-white shadow-xl shadow-primary/20 scale-105 z-10' 
+                       ? 'bg-primary text-white shadow-lg shadow-primary/10 scale-105' 
                        : 'text-muted-foreground hover:text-primary hover:bg-primary/5'
                      }
                    `}
@@ -102,13 +108,13 @@ export function Navbar() {
           </div>
         </div>
 
-        <div className="flex items-center gap-4">
-           <div className="hidden xl:flex items-center bg-secondary/50 px-3 py-1.5 rounded-xl border border-border text-muted-foreground w-48 focus-within:w-64 focus-within:ring-2 focus-within:ring-primary/20 transition-all duration-500">
-             <Search size={12} className="mr-2 text-primary" />
+        <div className="flex items-center gap-2">
+           <div className="hidden xl:flex items-center bg-secondary/30 px-2.5 py-1 rounded-lg border border-border text-muted-foreground w-32 focus-within:w-48 transition-all duration-500">
+             <Search size={10} className="mr-1.5 text-primary" />
              <input 
                type="text" 
-               placeholder="Clinical search..." 
-               className="bg-transparent border-none outline-none text-[11px] w-full font-bold placeholder:text-muted-foreground/60"
+               placeholder="Search..." 
+               className="bg-transparent border-none outline-none text-[10px] w-full font-bold placeholder:text-muted-foreground/40"
              />
            </div>
            

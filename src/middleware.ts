@@ -6,9 +6,9 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // Define public routes that don't need auth
-  const isPublicRoute = 
-    pathname === "/" || 
-    pathname === "/login" || 
+  const isPublicRoute =
+    pathname === "/" ||
+    pathname === "/login" ||
     pathname === "/register" ||
     pathname.startsWith("/api/auth") ||
     pathname.startsWith("/_next") ||
@@ -21,10 +21,17 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  // If authenticated and trying to access login/register, redirect to dashboard
+  // If authenticated and trying to access login/register, redirect to appropriate dashboard
   if (token && (pathname === "/login" || pathname === "/register")) {
+    const role = request.cookies.get("role")?.value
     const url = request.nextUrl.clone()
-    url.pathname = "/dashboard"
+    
+    if (role === "DOCTOR" || role === "ADMIN") {
+      url.pathname = "/staff/dashboard"
+    } else {
+      url.pathname = "/dashboard"
+    }
+    
     return NextResponse.redirect(url)
   }
 

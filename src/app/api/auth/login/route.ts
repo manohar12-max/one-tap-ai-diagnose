@@ -46,6 +46,13 @@ export async function POST(req: Request) {
       path: "/",
     })
 
+    response.cookies.set("role", user.role, {
+      httpOnly: false, // Middleware needs to read this
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 60 * 60 * 24 * 7,
+      path: "/",
+    })
+
     return response
   } catch (error: any) {
     console.error("Login error details:", error)

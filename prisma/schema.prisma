@@ -46,6 +46,8 @@ model User {
   clinicAddress   String?
   consultationFee Int?
   bio             String?
+  isVerified      Boolean  @default(false)
+  availability    String?   // e.g. "Mon-Fri, 9AM-5PM"
 
   // Patient specific
   age               Int?
@@ -64,6 +66,7 @@ model User {
   patientAppointments Appointment[] @relation("Patient")
   doctorAppointments  Appointment[] @relation("Doctor")
   chatSessions        ChatSession[]
+  sentMessages        AppointmentMessage[] @relation("Sender")
 }
 
 model ChatSession {
@@ -102,5 +105,19 @@ model Appointment {
   severity      Severity @default(LOW)
   status        Status   @default(PENDING)
   
+  appointmentDate DateTime?
+  timeSlot        String?
+  messages        AppointmentMessage[]
+
   createdAt     DateTime @default(now())
+}
+
+model AppointmentMessage {
+  id            String      @id @default(auto()) @map("_id") @db.ObjectId
+  appointmentId String      @db.ObjectId
+  appointment   Appointment @relation(fields: [appointmentId], references: [id])
+  senderId      String      @db.ObjectId
+  sender        User        @relation("Sender", fields: [senderId], references: [id])
+  content       String
+  createdAt     DateTime    @default(now())
 }

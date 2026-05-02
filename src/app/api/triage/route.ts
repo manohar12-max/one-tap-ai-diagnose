@@ -13,16 +13,41 @@ export async function POST(req: Request) {
     // Get user from auth token
     const cookieStore = await cookies()
     const token = cookieStore.get("token")?.value
-    const user = token ? verifyToken(token) : null
+    const decoded = token ? verifyToken(token) : null
+    
+    let userDetails = null
+    if (decoded) {
+      userDetails = await prisma.user.findUnique({
+        where: { id: decoded.userId },
+        select: {
+          age: true,
+          gender: true,
+          allergies: true,
+          chronicConditions: true,
+          medicalHistory: true,
+          currentMedications: true,
+        }
+      })
+    }
 
-    // Prepare multimodal content for Gemini
+    // Prepare prompt with medical context
+    const medicalContext = userDetails ? `
+[PATIENT MEDICAL CONTEXT]
+- Age: ${userDetails.age || 'Not specified'}
+- Gender: ${userDetails.gender || 'Not specified'}
+- Allergies: ${userDetails.allergies?.join(", ") || 'None reported'}
+- Chronic Conditions: ${userDetails.chronicConditions?.join(", ") || 'None reported'}
+- Medical History: ${userDetails.medicalHistory || 'No history provided'}
+- Current Medications: ${userDetails.currentMedications || 'None'}
+` : "";
+
     // Create the initial session record
     let sessionId: string | undefined
-    if (user) {
+    if (decoded) {
       // @ts-ignore - Prisma client property generated but IDE may be stale
       const session = await prisma.chatSession.create({
         data: {
-          userId: user.userId,
+          userId: decoded.userId,
           title: "Analyzing symptoms...",
           symptoms: symptoms,
           description: description,
@@ -43,7 +68,7 @@ export async function POST(req: Request) {
         {
           role: "user",
           content: [
-            { type: "text", text: `Body Part Affected: ${bodyPart}\nSymptoms: ${symptoms.join(", ")}\nDescription: ${description}\nIntensity: ${intensity}/10\nDuration: ${duration}` },
+            { type: "text", text: `${medicalContext}\n\n[CURRENT SYMPTOMS]\nBody Part Affected: ${bodyPart}\nSymptoms: ${symptoms.join(", ")}\nDescription: ${description}\nIntensity: ${intensity}/10\nDuration: ${duration}` },
             ...(images || []).map((img: string) => ({
               type: "image",
               image: img.split(",")[1] || img, // Remove data:image/png;base64, prefix if present

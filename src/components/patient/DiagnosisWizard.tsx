@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { 
   Brain, 
@@ -24,12 +24,16 @@ import {
   Footprints,
   Eye,
   Settings as Spine,
-  Accessibility as Joints
+  Accessibility as Joints,
+  ShieldCheck,
+  ArrowLeft,
+  HeartPulse
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
+import { toast } from "sonner"
 import { experimental_useObject as useObject } from "@ai-sdk/react"
 import { diagnosisSchema } from "@/lib/ai"
 import { DiagnosisResultView } from "@/components/patient/DiagnosisResultView"
@@ -48,7 +52,7 @@ const BODY_PARTS = [
   { id: "back", label: "Back & Spine", icon: <Spine size={24} /> },
   { id: "limbs", label: "Arms & Legs", icon: <Footprints size={24} /> },
   { id: "joints", label: "Joints", icon: <Joints size={24} /> },
-  { id: "skin", label: "Skin", icon: <Activity size={24} /> },
+  { id: "skin", label: "Skin", icon: <HeartPulse size={24} /> },
   { id: "whole", label: "Whole Body", icon: <UserIcon size={24} /> },
 ]
 
@@ -66,6 +70,17 @@ export function DiagnosisWizard() {
   const [diagnosisResult, setDiagnosisResult] = useState<any>(null)
 
   const [sessionId, setSessionId] = useState<string | null>(null)
+  const [userDetails, setUserDetails] = useState<any>(null)
+  const [loadingStep, setLoadingStep] = useState(0)
+  const [progress, setProgress] = useState(0)
+
+  const LOADING_STEPS = [
+    "Syncing your medical profile...",
+    "Analyzing symptoms & history...",
+    "Cross-referencing clinical databases...",
+    "Processing visual evidence...",
+    "Finalizing preliminary diagnosis..."
+  ]
 
   const { object, submit, isLoading } = useObject({
     api: "/api/triage",
@@ -76,6 +91,36 @@ export function DiagnosisWizard() {
       setIsProcessing(false)
     }
   })
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (isLoading) {
+      setLoadingStep(0);
+      setProgress(0);
+      interval = setInterval(() => {
+        setLoadingStep(prev => (prev < LOADING_STEPS.length - 1 ? prev + 1 : prev));
+        setProgress(prev => (prev < 95 ? prev + (Math.random() * 15) : prev));
+      }, 1500);
+    } else {
+      setProgress(100);
+    }
+    return () => clearInterval(interval);
+  }, [isLoading]);
+
+  useEffect(() => {
+    const fetchUserDetails = async () => {
+      try {
+        const res = await fetch("/api/user/details")
+        if (res.ok) {
+          const data = await res.json()
+          setUserDetails(data)
+        }
+      } catch (err) {
+        console.error("Failed to fetch user details for wizard:", err)
+      }
+    }
+    fetchUserDetails()
+  }, [])
 
   const toggleSymptom = (symptom: string) => {
     setSelectedSymptoms(prev => 
@@ -115,6 +160,9 @@ export function DiagnosisWizard() {
 
   const handleSubmit = async () => {
     setIsProcessing(true)
+    toast.info("Clinical AI Synthesis Started", {
+      description: "Analyzing symptoms and cross-referencing your medical history..."
+    })
     submit({
       bodyPart: selectedBodyPart,
       symptoms: selectedSymptoms,
@@ -138,6 +186,17 @@ export function DiagnosisWizard() {
 
   return (
     <div className="max-w-4xl mx-auto w-full px-4 sm:px-0">
+      <div className="px-6 pt-4">
+        <Button 
+          variant="ghost" 
+          onClick={() => window.history.back()}
+          className="text-muted-foreground hover:text-primary -ml-4 gap-2 font-bold mb-2"
+        >
+          <ArrowLeft size={18} />
+          Back
+        </Button>
+      </div>
+
       {/* Progress Stepper */}
       <div className="flex justify-between items-center mb-8 relative px-4">
         <div className="absolute top-1/2 left-0 w-full h-0.5 bg-border -z-10" />
@@ -385,7 +444,7 @@ export function DiagnosisWizard() {
             {step === 5 && (
               <div className="space-y-6 flex-1 flex flex-col items-center justify-center text-center">
                 <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-3">
-                  <Stethoscope size={32} />
+                  <HeartPulse size={32} />
                 </div>
                 <div className="space-y-1.5">
                   <h3 className="text-2xl font-black tracking-tight text-foreground">Ready for AI Analysis</h3>
@@ -405,6 +464,29 @@ export function DiagnosisWizard() {
                       <div className="flex flex-wrap gap-1">
                         {selectedSymptoms.map(s => <Badge key={s} variant="secondary" className="text-[9px]">{s}</Badge>)}
                       </div>
+
+                      {userDetails && (
+                        <div className="mt-4 p-3 rounded-xl bg-primary/5 border border-primary/10">
+                          <p className="text-[10px] font-black uppercase tracking-widest text-primary mb-2 flex items-center gap-1.5">
+                            <ShieldCheck size={10} />
+                            Medical Context Active
+                          </p>
+                          <div className="space-y-2">
+                             {userDetails.allergies?.length > 0 && (
+                               <div>
+                                 <p className="text-[8px] font-bold text-muted-foreground uppercase">Allergies</p>
+                                 <p className="text-[10px] font-bold text-foreground">{userDetails.allergies.join(", ")}</p>
+                               </div>
+                             )}
+                             {userDetails.chronicConditions?.length > 0 && (
+                               <div>
+                                 <p className="text-[8px] font-bold text-muted-foreground uppercase">Chronic Conditions</p>
+                                 <p className="text-[10px] font-bold text-foreground">{userDetails.chronicConditions.join(", ")}</p>
+                               </div>
+                             )}
+                          </div>
+                        </div>
+                      )}
                       
                       {images.length > 0 && (
                         <div className="mt-4">
@@ -427,9 +509,26 @@ export function DiagnosisWizard() {
                 </div>
 
                 {isLoading && (
-                  <div className="flex flex-col items-center gap-4 py-4">
-                    <Loader2 className="animate-spin text-primary" size={32} />
-                    <p className="text-xs font-black uppercase tracking-[0.2em] animate-pulse">Scanning Clinical Databases...</p>
+                  <div className="w-full max-w-sm space-y-6 py-8">
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-end">
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary animate-pulse">
+                          {LOADING_STEPS[loadingStep]}
+                        </p>
+                        <p className="text-[10px] font-black text-muted-foreground">{Math.round(progress)}%</p>
+                      </div>
+                      <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
+                        <motion.div 
+                          initial={{ width: 0 }}
+                          animate={{ width: `${progress}%` }}
+                          className="h-full bg-primary shadow-[0_0_15px_rgba(var(--primary),0.5)]"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-center gap-2">
+                      <Loader2 className="animate-spin text-primary/40" size={24} />
+                      <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest">Estimated time: ~10-15 seconds</p>
+                    </div>
                   </div>
                 )}
               </div>
@@ -462,7 +561,7 @@ export function DiagnosisWizard() {
                   disabled={isLoading}
                   className="h-14 px-12 rounded-2xl bg-primary hover:bg-primary/90 text-white font-black text-lg shadow-xl shadow-primary/30 gap-3"
                 >
-                  {isLoading ? <Loader2 className="animate-spin" size={20} /> : <Brain size={20} />}
+                  {isLoading ? <Loader2 className="animate-spin" size={20} /> : <HeartPulse size={20} />}
                   Generate Diagnosis
                 </Button>
               )}
