@@ -94,7 +94,7 @@ export default function StaffDashboardPage() {
     <div className="space-y-10">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div className="space-y-1">
-          <h1 className="text-4xl font-black tracking-tight text-foreground uppercase">
+          <h1 className="text-2xl sm:text-4xl font-black tracking-tight text-foreground uppercase leading-tight">
             Clinical <span className="text-primary">Overview</span>
           </h1>
           <p className="text-muted-foreground font-bold tracking-wide uppercase text-xs">

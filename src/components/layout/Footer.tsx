@@ -9,13 +9,13 @@ export function Footer() {
       <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-primary/5 blur-[150px] rounded-full pointer-events-none" />
       
       <div className="container mx-auto px-6 relative z-10">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 border-b border-border pb-12 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12 border-b border-border pb-12 mb-8">
           <div className="space-y-6">
-            <Link href="/" className="flex items-center gap-2 font-black text-2xl text-primary">
+            <Link href="/" className="flex items-center gap-2 font-black text-xl sm:text-2xl text-primary">
               <div className="bg-primary text-white p-1 rounded-lg">
-                <HeartPulse size={20} />
+                <HeartPulse size={18} />
               </div>
-              <span className="tracking-tighter">One Tap AI <span className="text-foreground dark:text-white text-xl">Diagnose</span></span>
+              <span className="tracking-tighter">One Tap AI <span className="text-foreground dark:text-white text-lg sm:text-xl font-black">Diagnose</span></span>
             </Link>
             <p className="text-muted-foreground text-xs leading-relaxed font-medium max-w-xs">
               Pioneering the future of digital health with advanced clinical triage and a seamless provider ecosystem.

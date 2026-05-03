@@ -127,7 +127,7 @@ export function DiagnosisResultView({ result, sessionId, existingMessages = [], 
                 Review all slides carefully for full clinical details
               </p>
             </div>
-            <div className="flex flex-wrap gap-2 pt-2">
+            <div className="hidden md:flex flex-wrap gap-2 pt-2">
               <motion.div
                 animate={{ scale: [1, 1.02, 1] }}
                 transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
@@ -652,7 +652,7 @@ export function DiagnosisResultView({ result, sessionId, existingMessages = [], 
       </div>
 
       {/* Primary Navigation Controls */}
-      <div className="flex flex-col items-center gap-6 mt-8">
+      <div className="hidden md:flex flex-col items-center gap-6 mt-8">
         <div className="flex items-center justify-between w-full max-w-lg bg-card/40 dark:bg-slate-900/40 backdrop-blur-xl p-2 rounded-2xl border border-border/50 shadow-2xl">
           <Button
             variant="ghost"
@@ -690,6 +690,48 @@ export function DiagnosisResultView({ result, sessionId, existingMessages = [], 
         <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest max-w-2xl mx-auto leading-relaxed">
           Disclaimer: This AI analysis is for informational triage purposes only. It is not a clinical diagnosis. In case of emergency, please call 911 or visit the nearest ER.
         </p>
+      </div>
+
+      {/* Floating Action Buttons for Mobile */}
+      <div className="fixed bottom-6 right-6 z-[60] flex flex-col gap-4 md:hidden">
+        <AnimatePresence>
+          <motion.div
+            initial={{ opacity: 0, scale: 0, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            className="flex flex-col gap-4"
+          >
+             <Link href={`/diagnose/${sessionId}/chat`}>
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                className="w-14 h-14 rounded-full bg-emerald-500 text-white shadow-2xl shadow-emerald-500/40 flex items-center justify-center relative group"
+              >
+                <MessageSquare size={24} />
+                <span className="absolute -top-1 -right-1 w-4 h-4 bg-white rounded-full flex items-center justify-center">
+                  <span className="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse" />
+                </span>
+                <span className="absolute right-16 px-3 py-1.5 rounded-lg bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap shadow-xl">
+                  AI Chat
+                </span>
+              </motion.button>
+            </Link>
+
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={() => setView("doctors")}
+              className="w-14 h-14 rounded-full bg-primary text-white shadow-2xl shadow-primary/40 flex items-center justify-center relative group"
+            >
+              <Stethoscope size={24} />
+              <span className="absolute -top-1 -right-1 w-4 h-4 bg-white rounded-full flex items-center justify-center">
+                <span className="w-2.5 h-2.5 bg-primary rounded-full animate-pulse" />
+              </span>
+              <span className="absolute right-16 px-3 py-1.5 rounded-lg bg-primary text-white text-[10px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap shadow-xl">
+                Book Doctor
+              </span>
+            </motion.button>
+          </motion.div>
+        </AnimatePresence>
       </div>
     </div>
   )

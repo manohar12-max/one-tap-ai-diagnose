@@ -6,6 +6,7 @@ import { StaffSidebar } from "@/components/staff/Sidebar"
 import { StaffHeader } from "@/components/staff/Header"
 import { Loader2, ShieldCheck } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 
 export default function StaffLayout({
   children,
@@ -14,6 +15,7 @@ export default function StaffLayout({
 }) {
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false)
   const router = useRouter()
   const pathname = usePathname()
 
@@ -43,13 +45,29 @@ export default function StaffLayout({
   const isProfileComplete = user.isDetailsFilled || user.role === "ADMIN"
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex overflow-hidden">
-      {/* Sidebar - Fixed width 72 (288px) */}
-      <StaffSidebar userRole={user.role} isDetailsFilled={isProfileComplete} />
+    <div className="min-h-screen bg-background text-foreground flex overflow-hidden relative">
+      {/* Sidebar - Fixed width 72 (288px) on desktop, absolute on mobile */}
+      <StaffSidebar 
+        userRole={user.role} 
+        isDetailsFilled={isProfileComplete} 
+        isOpen={isMobileSidebarOpen}
+        onClose={() => setIsMobileSidebarOpen(false)}
+      />
+      
+      {/* Mobile Sidebar Overlay */}
+      {isMobileSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[45] lg:hidden"
+          onClick={() => setIsMobileSidebarOpen(false)}
+        />
+      )}
       
       {/* Main Content Area */}
-      <div className="flex-1 ml-72 flex flex-col h-screen overflow-hidden">
-        <StaffHeader />
+      <div className={cn(
+        "flex-1 flex flex-col h-screen overflow-hidden transition-all duration-300",
+        "lg:ml-72"
+      )}>
+        <StaffHeader onToggleSidebar={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)} />
         
         <main className="flex-1 relative overflow-y-auto">
           {!isProfileComplete && pathname !== "/staff/settings" && (
@@ -71,7 +89,7 @@ export default function StaffLayout({
           <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/5 blur-[120px] rounded-full -z-10" />
           <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-indigo-500/5 blur-[120px] rounded-full -z-10" />
           
-          <div className="p-8 md:p-12 max-w-7xl mx-auto">
+          <div className="p-5 md:p-8 lg:p-12 max-w-7xl mx-auto">
             {children}
           </div>
         </main>

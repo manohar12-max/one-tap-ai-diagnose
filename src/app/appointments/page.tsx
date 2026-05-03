@@ -134,7 +134,7 @@ function AppointmentsContent() {
         <div className="absolute bottom-[-10%] left-[-5%] w-[30%] h-[30%] bg-emerald-500/5 blur-[100px] rounded-full" />
       </div>
 
-      <main className="container mx-auto px-6 pt-16 pb-32 relative z-10">
+      <main className="container mx-auto px-5 sm:px-8 pt-16 pb-32 relative z-10">
         <div className="max-w-6xl mx-auto space-y-16">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-8">
             <div className="space-y-3">
@@ -142,7 +142,7 @@ function AppointmentsContent() {
                 <ShieldCheck size={14} />
                 Secure Clinical Portal
               </div>
-              <h1 className="text-5xl font-black tracking-tighter text-foreground uppercase leading-none">
+              <h1 className="text-3xl sm:text-5xl font-black tracking-tighter text-foreground uppercase leading-none">
                 My <span className="text-primary italic">Consultations</span>
               </h1>
               <p className="text-muted-foreground font-medium text-sm max-w-md">

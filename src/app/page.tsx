@@ -59,7 +59,7 @@ export default function Home() {
 
       <main className="relative z-10">
         <section id="ai-pulse" className="pt-4 pb-20 md:pt-6 md:pb-24 bg-secondary/10 dark:bg-slate-900/40 text-foreground dark:text-white overflow-hidden relative border-b border-border transition-colors duration-500">
-          <div className="container mx-auto px-6 relative z-10">
+          <div className="container mx-auto px-5 sm:px-8 relative z-10">
             <motion.div 
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -74,11 +74,11 @@ export default function Home() {
               </div>
 
               <div className="space-y-4 text-center">
-                <h2 className="text-3xl md:text-5xl font-extralight tracking-[0.2em] text-muted-foreground uppercase">
+                <h2 className="text-xl md:text-5xl font-extralight tracking-[0.2em] text-muted-foreground uppercase text-center">
                   One-Tap 
-                  <span className="block text-5xl md:text-7xl font-black tracking-[-0.02em] mt-2 leading-tight transition-all">
+                  <span className="block text-4xl md:text-7xl font-black tracking-[-0.02em] mt-2 leading-tight transition-all text-center">
                     <span className="text-primary">AI</span>
-                    <span className="text-foreground mx-4 opacity-20">-</span>
+                    <span className="text-foreground mx-2 md:mx-4 opacity-20">-</span>
                     <span className="text-foreground dark:text-white">Diagnose</span>
                   </span>
                 </h2>
@@ -96,7 +96,7 @@ export default function Home() {
         </section>
 
         <section className="relative py-24 md:py-40 bg-background/40 dark:bg-slate-950/40 text-foreground dark:text-white overflow-hidden transition-colors duration-500">
-          <div className="container mx-auto px-6 relative z-10">
+          <div className="container mx-auto px-5 sm:px-8 relative z-10">
             <div className="max-w-5xl mx-auto text-center space-y-12">
                <motion.div
                  initial={{ opacity: 0, scale: 0.9 }}
@@ -111,9 +111,9 @@ export default function Home() {
                  initial={{ opacity: 0, y: 30 }}
                  animate={{ opacity: 1, y: 0 }}
                  transition={{ delay: 0.2 }}
-                 className="text-6xl md:text-9xl font-black tracking-tighter leading-[0.9] text-foreground dark:text-white"
+                 className="text-4xl sm:text-6xl md:text-9xl font-black tracking-tighter leading-[1.1] md:leading-[0.9] text-foreground dark:text-white"
                >
-                 Instant Clinical <span className="text-primary">Clarity</span> <br/> 
+                 Instant Clinical <span className="text-primary">Clarity</span> <br className="hidden sm:block"/> 
                  Powered by AI.
                </motion.h1>
                
@@ -154,7 +154,7 @@ export default function Home() {
         </section>
 
         {/* Categories Grid */}
-        <section className="py-24 container mx-auto px-6">
+        <section className="py-24 container mx-auto px-5 sm:px-8">
           <motion.div 
             variants={containerVariants}
             initial="hidden"
@@ -182,7 +182,7 @@ export default function Home() {
 
 
         {/* Specialties Section */}
-        <section className="py-32 container mx-auto px-6">
+        <section className="py-32 container mx-auto px-5 sm:px-8">
           <div className="max-w-6xl mx-auto space-y-16">
             <div className="flex flex-col md:flex-row justify-between items-center gap-6">
               <div className="space-y-2 text-center md:text-left">
@@ -212,7 +212,7 @@ export default function Home() {
         </section>
 
         {/* Testimonials Section */}
-        <section className="py-32 container mx-auto px-6 bg-secondary/10 dark:bg-transparent transition-colors">
+        <section className="py-32 container mx-auto px-5 sm:px-8 bg-secondary/10 dark:bg-transparent transition-colors">
            <div className="max-w-6xl mx-auto">
               <div className="text-center mb-20 space-y-4">
                 <h2 className="text-4xl md:text-6xl font-black tracking-tight text-foreground dark:text-white">Patient Success Stories</h2>

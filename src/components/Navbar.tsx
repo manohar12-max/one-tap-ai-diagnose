@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter, usePathname } from "next/navigation"
-import { HeartPulse, Search, Menu, LogOut, User, LayoutDashboard, Sparkles, ChevronDown, Bell, History, Calendar } from "lucide-react"
+import { HeartPulse, Search, Menu, LogOut, User, LayoutDashboard, Sparkles, ChevronDown, Bell, History, Calendar, X } from "lucide-react"
+import { motion, AnimatePresence } from "framer-motion"
 import { ModeToggle } from "./ModeToggle"
 import { Button } from "./ui/button"
 import { toast } from "sonner"
@@ -13,6 +14,7 @@ export function Navbar() {
   const [user, setUser] = useState<any>(null)
   const router = useRouter()
   const pathname = usePathname()
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user")
@@ -20,6 +22,11 @@ export function Navbar() {
       setUser(JSON.parse(storedUser))
     }
   }, [])
+
+  // Close mobile menu on route change
+  useEffect(() => {
+    setIsMobileMenuOpen(false)
+  }, [pathname])
 
   const handleLogout = async () => {
     try {
@@ -34,9 +41,6 @@ export function Navbar() {
       toast.error("Failed to logout")
     }
   }
-
-
-
 
   const navLinks = user
     ? [
@@ -58,7 +62,7 @@ export function Navbar() {
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60 transition-all duration-300">
-      <div className="container mx-auto px-4 lg:px-6 h-16 flex items-center justify-between">
+      <div className="container mx-auto px-5 sm:px-8 h-16 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Link href="/" className="flex items-center gap-2 font-black text-lg text-primary group">
             <div className="bg-primary text-white p-1 rounded-lg group-hover:rotate-12 transition-all duration-300">
@@ -94,18 +98,19 @@ export function Navbar() {
         </div>
 
         <div className="flex items-center gap-2">
-
           <div className="flex items-center gap-2 pl-2 border-l border-border/50">
             <ModeToggle />
 
             {user ? (
               <div className="flex items-center gap-2">
-                <NotificationCenter user={user} />
+                <div className="hidden sm:block">
+                  <NotificationCenter user={user} />
+                </div>
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={handleLogout}
-                  className="w-8 h-8 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 transition-all"
+                  className="hidden sm:flex w-8 h-8 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 transition-all"
                   title="Logout"
                 >
                   <LogOut size={14} />
@@ -115,7 +120,7 @@ export function Navbar() {
                 </div>
               </div>
             ) : (
-              <div className="flex items-center gap-3">
+              <div className="hidden sm:flex items-center gap-3">
                 <Link href="/login">
                   <Button variant="outline" className="text-[10px] font-black uppercase tracking-[0.15em] h-9 px-5 border-primary/20 hover:bg-primary/5 hover:border-primary/40 rounded-xl transition-all">Login</Button>
                 </Link>
@@ -125,12 +130,87 @@ export function Navbar() {
               </div>
             )}
 
-            <Button variant="ghost" size="icon" className="lg:hidden w-11 h-11 rounded-xl">
-              <Menu className="h-6 w-6" />
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="lg:hidden w-10 h-10 rounded-xl"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            >
+              {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </Button>
           </div>
         </div>
       </div>
+
+      {/* Mobile Menu Overlay */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="lg:hidden border-t bg-white dark:bg-[#020617] backdrop-blur-3xl shadow-2xl overflow-hidden"
+          >
+            <div className="p-4 space-y-2">
+              {navLinks.map((link) => {
+                const isActive = pathname === link.href
+                return (
+                  <Link
+                    key={link.name}
+                    href={link.href}
+                    className={`
+                       flex items-center gap-3 px-4 py-4 rounded-2xl text-sm font-black uppercase tracking-widest transition-all
+                       ${isActive
+                        ? 'bg-primary text-white shadow-lg shadow-primary/20'
+                        : 'text-muted-foreground hover:text-primary hover:bg-primary/5'
+                      }
+                     `}
+                  >
+                    {link.icon}
+                    {link.name}
+                  </Link>
+                )
+              })}
+              
+              {!user && (
+                <div className="grid grid-cols-2 gap-3 pt-4 border-t">
+                  <Link href="/login" className="w-full">
+                    <Button variant="outline" className="w-full h-12 rounded-xl font-black text-xs uppercase tracking-widest">Login</Button>
+                  </Link>
+                  <Link href="/register" className="w-full">
+                    <Button className="w-full h-12 rounded-xl bg-primary text-white font-black text-xs uppercase tracking-widest">Register</Button>
+                  </Link>
+                </div>
+              )}
+
+              {user && (
+                <div className="pt-4 border-t space-y-3">
+                   <div className="flex items-center justify-between px-4 py-2 bg-secondary/30 rounded-2xl">
+                     <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary font-black text-xs">
+                          {user.name.charAt(0)}
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-black uppercase tracking-widest text-foreground">{user.name}</p>
+                          <p className="text-[8px] font-bold text-muted-foreground uppercase">{user.role}</p>
+                        </div>
+                     </div>
+                     <NotificationCenter user={user} />
+                   </div>
+                   <Button
+                    variant="destructive"
+                    className="w-full h-12 rounded-2xl font-black text-xs uppercase tracking-widest gap-2"
+                    onClick={handleLogout}
+                  >
+                    <LogOut size={16} />
+                    Logout
+                  </Button>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </nav>
   )
 }

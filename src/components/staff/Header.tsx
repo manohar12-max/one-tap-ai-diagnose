@@ -7,7 +7,8 @@ import {
   Search,
   Settings,
   User as UserIcon,
-  ChevronDown
+  ChevronDown,
+  Menu
 } from "lucide-react"
 import { ModeToggle } from "@/components/ModeToggle"
 import { Button } from "@/components/ui/button"
@@ -23,7 +24,7 @@ import {
 
 import { NotificationCenter } from "@/components/NotificationCenter"
 
-export function StaffHeader() {
+export function StaffHeader({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
   const [user, setUser] = useState<any>(null)
 
   useEffect(() => {
@@ -32,8 +33,16 @@ export function StaffHeader() {
   }, [])
 
   return (
-    <header className="sticky top-0 z-40 w-full h-20 bg-background/60 backdrop-blur-xl border-b border-border px-8 flex items-center justify-between">
+    <header className="sticky top-0 z-40 w-full h-20 bg-background/60 backdrop-blur-xl border-b border-border px-4 md:px-8 flex items-center justify-between">
       <div className="flex items-center gap-4 flex-1">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onToggleSidebar}
+          className="lg:hidden w-10 h-10 rounded-xl hover:bg-secondary transition-all"
+        >
+          <Menu size={20} />
+        </Button>
       </div>
 
       <div className="flex items-center gap-4">

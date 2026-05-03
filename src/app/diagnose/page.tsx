@@ -10,7 +10,7 @@ export default function TriagePage() {
     <div className="min-h-screen bg-transparent relative pb-20">
       <Navbar />
 
-      <main className="container mx-auto px-6 pt-24 space-y-12 relative z-10">
+      <main className="container mx-auto px-5 sm:px-8 pt-24 relative z-10">
         {/* Page Header */}
         <div className="max-w-4xl mx-auto text-center space-y-3">
           <motion.div

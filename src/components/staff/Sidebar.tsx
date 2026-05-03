@@ -64,13 +64,27 @@ const STAFF_NAV_ITEMS = [
   }
 ]
 
-export function StaffSidebar({ userRole, isDetailsFilled }: { userRole: string, isDetailsFilled: boolean }) {
+export function StaffSidebar({ 
+  userRole, 
+  isDetailsFilled,
+  isOpen,
+  onClose
+}: { 
+  userRole: string, 
+  isDetailsFilled: boolean,
+  isOpen?: boolean,
+  onClose?: () => void
+}) {
   const pathname = usePathname()
 
   const filteredNavItems = STAFF_NAV_ITEMS.filter(item => item.role.includes(userRole))
 
   return (
-    <div className="w-72 h-screen bg-card/30 backdrop-blur-3xl border-r border-border flex flex-col p-6 fixed left-0 top-0 z-50">
+    <div className={cn(
+      "w-72 h-screen bg-card dark:bg-[#020617] border-r border-border/50 flex flex-col p-6 fixed left-0 top-0 z-50 transition-transform duration-300",
+      !isOpen && "-translate-x-full lg:translate-x-0",
+      isOpen && "translate-x-0 shadow-2xl lg:shadow-none"
+    )}>
       <div className="flex items-center gap-3 mb-10 px-2">
         <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center text-primary shadow-lg shadow-primary/10">
           <HeartPulse size={24} />
@@ -133,7 +147,7 @@ export function StaffSidebar({ userRole, isDetailsFilled }: { userRole: string, 
       </nav>
 
       <div className="mt-auto pt-6 border-t border-border">
-        <div className="bg-secondary/30 rounded-3xl p-4 mb-4 border border-border/50">
+        <div className="bg-secondary/50 dark:bg-slate-900/50 rounded-3xl p-4 mb-4 border border-border/50">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-8 h-8 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-500">
               <Stethoscope size={16} />

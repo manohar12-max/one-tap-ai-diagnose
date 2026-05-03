@@ -112,14 +112,14 @@ export default function PatientDashboard() {
     <div className="min-h-screen bg-transparent relative pb-20">
       <Navbar />
 
-      <main className="container mx-auto px-6 pt-24 space-y-12 relative z-10">
+      <main className="container mx-auto px-5 sm:px-8 pt-6 pb-24 relative z-10">
         {/* Header Section */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div className="space-y-1">
             <motion.h1
               initial={{ x: -20, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
-              className="text-2xl md:text-3xl font-black tracking-tight text-foreground"
+              className="text-xl md:text-3xl font-black tracking-tight text-foreground leading-tight"
             >
               Good morning, <span className="text-primary">{userName.split(' ')[0]}</span>
             </motion.h1>

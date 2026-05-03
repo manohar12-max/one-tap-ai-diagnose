@@ -94,7 +94,7 @@ export default function ClinicalHistoryPage() {
     <div className="min-h-screen bg-transparent relative pb-20">
       <Navbar />
       
-      <main className="container mx-auto px-6 pt-24 space-y-8 relative z-10">
+      <main className="container mx-auto px-5 sm:px-8 pt-16 pb-32 relative z-10">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div className="space-y-1">
             <div className="flex items-center gap-2 text-primary">

@@ -157,7 +157,7 @@ export default function FindDoctorsPage() {
         />
       )}
 
-      <main className="relative z-10 pt-12 pb-32 px-6">
+      <main className="container mx-auto px-5 sm:px-8 pt-24 pb-32 relative z-10">
         <div className="max-w-6xl mx-auto mb-10">
           <Button
             variant="ghost"
@@ -174,10 +174,10 @@ export default function FindDoctorsPage() {
             animate={{ opacity: 1, y: 0 }}
             className="space-y-4"
           >
-            <h1 className="text-5xl md:text-7xl font-black tracking-tight text-foreground">
+            <h1 className="text-3xl sm:text-5xl md:text-7xl font-black tracking-tight text-foreground leading-tight">
               Find the Right <span className="text-primary">Specialist</span>
             </h1>
-            <p className="text-muted-foreground text-xl max-w-2xl mx-auto font-medium">
+            <p className="text-muted-foreground text-base sm:text-xl max-w-2xl mx-auto font-medium">
               Discover top-rated doctors and verified clinics near you. Book instant consultations.
             </p>
           </motion.div>
