@@ -43,7 +43,7 @@ export default function RegisterPage() {
           description: `Welcome to the platform, ${formData.name}.`,
         })
         const targetPath = data.user.role === "DOCTOR" ? "/staff/dashboard" : "/dashboard"
-        router.push(targetPath)
+        window.location.href = targetPath
       } else {
         const errorMessage = data.error || "Registration failed"
         setError(errorMessage)

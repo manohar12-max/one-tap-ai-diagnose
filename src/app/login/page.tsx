@@ -49,11 +49,11 @@ export default function LoginPage() {
         })
 
         if (data.user.role === 'DOCTOR') {
-          router.push("/staff/dashboard")
+          window.location.href = "/staff/dashboard"
         } else if (!data.user.isDetailsFilled) {
-          router.push("/onboarding")
+          window.location.href = "/onboarding"
         } else {
-          router.push("/dashboard")
+          window.location.href = "/dashboard"
         }
       } else {
         const errorMessage = data.error || "Login failed"
