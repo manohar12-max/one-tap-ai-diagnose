@@ -38,10 +38,12 @@ export default function RegisterPage() {
 
       if (res.ok) {
         localStorage.setItem("user", JSON.stringify(data.user))
+        localStorage.setItem("token", data.token)
         toast.success("Account created successfully!", {
           description: `Welcome to the platform, ${formData.name}.`,
         })
-        router.push("/dashboard")
+        const targetPath = data.user.role === "DOCTOR" ? "/staff/dashboard" : "/dashboard"
+        router.push(targetPath)
       } else {
         const errorMessage = data.error || "Registration failed"
         setError(errorMessage)

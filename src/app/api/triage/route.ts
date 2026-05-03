@@ -75,7 +75,7 @@ export async function POST(req: Request) {
       messages: [
         {
           role: "system",
-          content: DIAGNOSIS_SYSTEM_PROMPT,
+          content: DIAGNOSIS_SYSTEM_PROMPT + (sessionId ? `\n\nIMPORTANT: You MUST include this sessionId in your JSON response: ${sessionId}` : ""),
         },
         {
           role: "user",

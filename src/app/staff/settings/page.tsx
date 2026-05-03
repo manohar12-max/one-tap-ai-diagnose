@@ -80,6 +80,11 @@ export default function StaffSettingsPage() {
         // Update local storage role data if needed
         const userData = JSON.parse(localStorage.getItem("user") || "{}")
         localStorage.setItem("user", JSON.stringify({ ...userData, isDetailsFilled: true }))
+
+        // Refresh the whole page and navigate to the overview as requested
+        setTimeout(() => {
+          window.location.href = "/staff/dashboard"
+        }, 1500)
       } else {
         toast.error("Update Failed", {
           description: "Could not save your professional details.",

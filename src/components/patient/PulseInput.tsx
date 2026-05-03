@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import { Loader2, Send, Activity, ShieldAlert, CheckCircle2, ChevronRight } from "lucide-react"
 
 import { useRouter } from "next/navigation"
+import { toast } from "sonner"
 
 export function PulseInput() {
   const [symptoms, setSymptoms] = useState("")
@@ -20,19 +21,23 @@ export function PulseInput() {
   })
 
   const handleAction = () => {
-    // Check if token exists in cookies or mock auth check
     const hasToken = document.cookie.includes("token")
     if (!hasToken) {
+      toast.info("Please login to start diagnosis", {
+        description: "Your health insights are secured with your account.",
+        duration: 4000
+      })
       router.push("/login")
-      return
+      return false
     }
-    // Proceed with action
+    return true
   }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!symptoms.trim()) return
-    // Triage API expects symptoms as an array
+
+    if (!handleAction()) return
     submit({ 
       symptoms: [symptoms],
       bodyPart: "unspecified",
@@ -44,7 +49,12 @@ export function PulseInput() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-10">
-      <Card className="p-8 bg-card/50 border-border backdrop-blur-xl shadow-2xl rounded-3xl overflow-hidden relative">
+      <Card className="p-8 bg-card/40 border-primary/10 backdrop-blur-3xl shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)] dark:shadow-[0_32px_64px_-16px_rgba(0,0,0,0.5)] rounded-[3rem] overflow-hidden relative group">
+        {/* Animated Background Elements */}
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-blue-500/5 pointer-events-none" />
+        <div className="absolute -top-24 -right-24 w-64 h-64 bg-primary/10 blur-[80px] rounded-full group-hover:bg-primary/20 transition-colors duration-700" />
+        <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-blue-600/10 blur-[80px] rounded-full group-hover:bg-blue-600/20 transition-colors duration-700" />
+        
         <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
           <div className="space-y-4">
             <h3 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
@@ -52,6 +62,7 @@ export function PulseInput() {
               Symptom Analysis Pulse
             </h3>
             <textarea
+              autoFocus
               value={symptoms}
               onChange={(e) => setSymptoms(e.target.value)}
               placeholder="E.g. I have a persistent cough and a mild fever for 2 days..."

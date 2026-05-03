@@ -3,16 +3,16 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
-import { 
-  Activity, 
-  Brain, 
-  Camera, 
-  Stethoscope, 
-  History, 
-  ChevronRight, 
-  Sparkles, 
-  User, 
-  Settings, 
+import {
+  Activity,
+  Brain,
+  Camera,
+  Stethoscope,
+  History,
+  ChevronRight,
+  Sparkles,
+  User,
+  Settings,
   LogOut,
   Calendar,
   AlertCircle
@@ -33,7 +33,7 @@ export default function PatientDashboard() {
   const [history, setHistory] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isProfileIncomplete, setIsProfileIncomplete] = useState(false)
-  
+
   const [appointments, setAppointments] = useState<any[]>([])
   const [selectedAppointment, setSelectedAppointment] = useState<any>(null)
   const [isChatOpen, setIsChatOpen] = useState(false)
@@ -43,7 +43,7 @@ export default function PatientDashboard() {
   useEffect(() => {
     const userData = JSON.parse(localStorage.getItem("user") || "{}")
     if (userData.name) setUserName(userData.name)
-    
+
     // Redirect Doctors/Admins to staff portal
     if (userData.role === 'DOCTOR' || userData.role === 'ADMIN') {
       router.push("/staff/dashboard")
@@ -54,7 +54,7 @@ export default function PatientDashboard() {
     if (!userData.age || !userData.gender) {
       setIsProfileIncomplete(true)
     }
-    
+
     const fetchHistory = async () => {
       try {
         const res = await fetch("/api/history")
@@ -89,7 +89,7 @@ export default function PatientDashboard() {
 
   const containerVariants = {
     hidden: { opacity: 0 },
-    visible: { 
+    visible: {
       opacity: 1,
       transition: { staggerChildren: 0.1 }
     }
@@ -100,15 +100,23 @@ export default function PatientDashboard() {
     visible: { y: 0, opacity: 1 }
   }
 
+  // Immediate Guard: Prevent rendering if the user is a Doctor/Admin
+  if (typeof window !== 'undefined') {
+    const userData = JSON.parse(localStorage.getItem("user") || "{}")
+    if (userData.role === 'DOCTOR' || userData.role === 'ADMIN') {
+      return null
+    }
+  }
+
   return (
     <div className="min-h-screen bg-transparent relative pb-20">
       <Navbar />
-      
+
       <main className="container mx-auto px-6 pt-24 space-y-12 relative z-10">
         {/* Header Section */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div className="space-y-1">
-            <motion.h1 
+            <motion.h1
               initial={{ x: -20, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               className="text-2xl md:text-3xl font-black tracking-tight text-foreground"
@@ -120,35 +128,35 @@ export default function PatientDashboard() {
               AI Clinical Intelligence active.
             </p>
           </div>
-          
+
           <div className="flex items-center gap-4">
-             <Link href="/profile-settings">
-               <Button variant="outline" className={cn(
-                 "rounded-2xl h-12 px-6 border-border bg-card/50 backdrop-blur-sm font-bold text-xs tracking-widest uppercase relative",
-                 isProfileIncomplete && "border-red-500/50 text-red-500 hover:text-red-600 hover:bg-red-500/5"
-               )}>
-                 <Settings size={18} className={cn("mr-2", isProfileIncomplete && "animate-spin-slow")} />
-                 {isProfileIncomplete ? "Complete Profile" : "Profile Settings"}
-                 
-                 {isProfileIncomplete && (
-                   <span className="absolute -top-1 -right-1 flex h-4 w-4">
-                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                     <span className="relative inline-flex rounded-full h-4 w-4 bg-red-500 items-center justify-center">
-                       <AlertCircle size={10} className="text-white" />
-                     </span>
-                   </span>
-                 )}
-               </Button>
-             </Link>
+            <Link href="/profile-settings">
+              <Button variant="outline" className={cn(
+                "rounded-2xl h-12 px-6 border-border bg-card/50 backdrop-blur-sm font-bold text-xs tracking-widest uppercase relative",
+                isProfileIncomplete && "border-red-500/50 text-red-500 hover:text-red-600 hover:bg-red-500/5"
+              )}>
+                <Settings size={18} className={cn("mr-2", isProfileIncomplete && "animate-spin-slow")} />
+                {isProfileIncomplete ? "Complete Profile" : "Profile Settings"}
+
+                {isProfileIncomplete && (
+                  <span className="absolute -top-1 -right-1 flex h-4 w-4">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-4 w-4 bg-red-500 items-center justify-center">
+                      <AlertCircle size={10} className="text-white" />
+                    </span>
+                  </span>
+                )}
+              </Button>
+            </Link>
           </div>
         </div>
 
         {/* Main Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          
+
           {/* Left Column: AI Actions */}
           <div className="lg:col-span-8 space-y-8">
-            
+
             {/* Primary AI Scanner Card */}
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
@@ -159,7 +167,7 @@ export default function PatientDashboard() {
                 <div className="bg-slate-950/90 rounded-[1.8rem] p-8 space-y-8 relative overflow-hidden">
                   {/* Background Decoration */}
                   <div className="absolute top-0 right-0 w-80 h-80 bg-primary/20 blur-[100px] rounded-full -mr-32 -mt-32 animate-pulse" />
-                  
+
                   <div className="flex flex-col md:flex-row items-center justify-between gap-8">
                     <div className="space-y-5 max-w-lg text-center md:text-left">
                       <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/20 border border-primary/30 text-primary text-[9px] font-black uppercase tracking-[0.2em]">
@@ -172,24 +180,24 @@ export default function PatientDashboard() {
                       <p className="text-slate-400 text-base leading-relaxed">
                         Analyze symptoms, upload images, or use our specialized skin condition scanner for instant results.
                       </p>
-                      
+
                       <div className="flex flex-wrap gap-3 justify-center md:justify-start">
                         <Link href="/diagnose">
                           <Button className="h-12 px-6 rounded-xl bg-primary hover:bg-primary/90 text-white font-bold text-xs tracking-widest uppercase shadow-xl shadow-primary/30 group">
-                             Start Symptom Scan
-                             <ChevronRight size={16} className="ml-2 group-hover:translate-x-1 transition-transform" />
+                            Start Symptom Scan
+                            <ChevronRight size={16} className="ml-2 group-hover:translate-x-1 transition-transform" />
                           </Button>
                         </Link>
                         <Button variant="outline" className="h-12 px-6 rounded-xl border-slate-800 bg-white/5 hover:bg-white/10 text-white font-bold text-xs tracking-widest uppercase">
-                           <Camera size={16} className="mr-2" />
-                           Skin Analysis
+                          <Camera size={16} className="mr-2" />
+                          Skin Analysis
                         </Button>
                       </div>
                     </div>
-                    
+
                     <div className="relative">
                       <div className="w-64 h-64 md:w-80 md:h-80 rounded-full border-[12px] border-primary/10 flex items-center justify-center relative">
-                        <motion.div 
+                        <motion.div
                           animate={{ rotate: 360 }}
                           transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
                           className="absolute inset-0 rounded-full border-t-[12px] border-primary"
@@ -217,13 +225,13 @@ export default function PatientDashboard() {
                   <Button variant="ghost" className="text-primary font-bold text-sm hover:bg-primary/5">View All</Button>
                 </Link>
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {isLoading ? (
                   [1, 2].map(i => <Card key={i} className="h-48 animate-pulse bg-secondary/20 border-border rounded-3xl" />)
                 ) : history.length > 0 ? (
                   history.slice(0, 4).map((item, i) => (
-                    <motion.div key={item.id} variants={cardVariants} initial="hidden" animate="visible" transition={{ delay: 0.2 + (i*0.1) }}>
+                    <motion.div key={item.id} variants={cardVariants} initial="hidden" animate="visible" transition={{ delay: 0.2 + (i * 0.1) }}>
                       <Link href={`/diagnose/${item.id}`}>
                         <Card className="p-6 bg-card/40 border-border backdrop-blur-xl hover:border-primary/40 transition-all cursor-pointer group">
                           <div className="flex justify-between items-start mb-6">
@@ -232,9 +240,9 @@ export default function PatientDashboard() {
                             </div>
                             <div className={cn(
                               "px-3 py-1 rounded-full text-[10px] font-black tracking-widest uppercase border",
-                              item.diagnosis?.severity === 'CRITICAL' ? 'bg-red-500/10 text-red-500 border-red-500/20' : 
-                              item.diagnosis?.severity === 'HIGH' ? 'bg-orange-500/10 text-orange-500 border-orange-500/20' :
-                              'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
+                              item.diagnosis?.severity === 'CRITICAL' ? 'bg-red-500/10 text-red-500 border-red-500/20' :
+                                item.diagnosis?.severity === 'HIGH' ? 'bg-orange-500/10 text-orange-500 border-orange-500/20' :
+                                  'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
                             )}>
                               {item.diagnosis?.severity || 'LOW'} SEVERITY
                             </div>
@@ -262,30 +270,30 @@ export default function PatientDashboard() {
 
           {/* Right Column: Vitals & Status */}
           <div className="lg:col-span-4 space-y-8">
-             
+
             {/* Quick Stats Card */}
             <Card className="p-8 bg-card/60 border-border backdrop-blur-3xl rounded-[2.5rem] shadow-xl overflow-hidden relative">
               <div className="absolute -top-10 -right-10 w-40 h-40 bg-primary/5 blur-3xl rounded-full" />
               <h3 className="font-black text-xs uppercase tracking-[0.2em] text-muted-foreground mb-8">Patient Vitals</h3>
               <div className="space-y-8">
-                 {[
-                   { label: "Heart Rate", value: "72", unit: "BPM", trend: "+2", color: "text-red-500" },
-                   { label: "Blood Oxygen", value: "98", unit: "%", trend: "Normal", color: "text-blue-500" },
-                   { label: "Step Count", value: "8.4k", unit: "Steps", trend: "+12%", color: "text-emerald-500" },
-                 ].map((stat, i) => (
-                   <div key={i} className="flex items-center justify-between">
-                     <div className="space-y-1">
-                       <p className="text-xs font-bold text-muted-foreground">{stat.label}</p>
-                       <div className="flex items-baseline gap-1">
-                         <span className="text-3xl font-black text-foreground">{stat.value}</span>
-                         <span className="text-xs font-medium text-muted-foreground">{stat.unit}</span>
-                       </div>
-                     </div>
-                     <div className={`text-[10px] font-black px-2 py-1 rounded-lg bg-secondary/80 ${stat.color}`}>
-                       {stat.trend}
-                     </div>
-                   </div>
-                 ))}
+                {[
+                  { label: "Heart Rate", value: "72", unit: "BPM", trend: "+2", color: "text-red-500" },
+                  { label: "Blood Oxygen", value: "98", unit: "%", trend: "Normal", color: "text-blue-500" },
+                  { label: "Step Count", value: "8.4k", unit: "Steps", trend: "+12%", color: "text-emerald-500" },
+                ].map((stat, i) => (
+                  <div key={i} className="flex items-center justify-between">
+                    <div className="space-y-1">
+                      <p className="text-xs font-bold text-muted-foreground">{stat.label}</p>
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-3xl font-black text-foreground">{stat.value}</span>
+                        <span className="text-xs font-medium text-muted-foreground">{stat.unit}</span>
+                      </div>
+                    </div>
+                    <div className={`text-[10px] font-black px-2 py-1 rounded-lg bg-secondary/80 ${stat.color}`}>
+                      {stat.trend}
+                    </div>
+                  </div>
+                ))}
               </div>
               <Button variant="outline" className="w-full mt-10 rounded-2xl h-14 border-primary/20 text-primary font-black text-xs tracking-[0.2em] uppercase hover:bg-primary hover:text-white transition-all">
                 Full Vitals Report
@@ -328,9 +336,9 @@ export default function PatientDashboard() {
                         <p className="font-black text-base">{app.doctor.name}</p>
                         <p className={cn("text-xs font-bold", app.status === 'IN_CONSULTATION' ? "text-white/60" : "text-primary/70")}>{app.doctor.specialty}</p>
                       </div>
-                      
+
                       {app.status === 'IN_CONSULTATION' ? (
-                        <Button 
+                        <Button
                           onClick={() => {
                             setSelectedAppointment(app)
                             setIsChatOpen(true)
@@ -359,7 +367,7 @@ export default function PatientDashboard() {
             <AnimatePresence>
               {isChatOpen && selectedAppointment && (
                 <>
-                  <motion.div 
+                  <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
@@ -373,7 +381,7 @@ export default function PatientDashboard() {
                     transition={{ type: "spring", damping: 25, stiffness: 200 }}
                     className="fixed inset-y-0 right-0 w-full md:w-[450px] bg-card z-[101]"
                   >
-                    <ChatInterface 
+                    <ChatInterface
                       appointmentId={selectedAppointment.id}
                       currentUserId={currentUser?.id || currentUser?._id}
                       partnerName={selectedAppointment.doctor.name}

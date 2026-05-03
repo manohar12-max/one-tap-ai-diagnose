@@ -11,7 +11,7 @@ import {
   ClipboardList,
   BarChart3,
   LogOut,
-  Activity,
+  HeartPulse,
   ShieldCheck,
   Stethoscope
 } from "lucide-react"
@@ -73,10 +73,10 @@ export function StaffSidebar({ userRole, isDetailsFilled }: { userRole: string, 
     <div className="w-72 h-screen bg-card/30 backdrop-blur-3xl border-r border-border flex flex-col p-6 fixed left-0 top-0 z-50">
       <div className="flex items-center gap-3 mb-10 px-2">
         <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center text-primary shadow-lg shadow-primary/10">
-          <Activity size={24} />
+          <HeartPulse size={24} />
         </div>
         <div>
-          <h1 className="font-black text-foreground tracking-tighter text-xl leading-none">ONE TAP</h1>
+          <h1 className="font-black text-foreground tracking-tighter text-xl leading-none">ONE TAP AI DIAGNOSE</h1>
           <p className="text-[10px] font-bold text-primary tracking-widest uppercase">Staff Portal</p>
         </div>
       </div>
@@ -150,7 +150,7 @@ export function StaffSidebar({ userRole, isDetailsFilled }: { userRole: string, 
               try {
                 const res = await fetch("/api/auth/logout", { method: "POST" })
                 if (res.ok) {
-                  localStorage.removeItem("user")
+                  localStorage.clear()
                   toast.success("Signed out successfully")
                   window.location.href = "/login"
                 }

@@ -43,15 +43,22 @@ export async function POST(req: Request) {
       role: role || "PATIENT"
     }
 
-    const token = signToken({ userId: user.id, email: user.email, role: user.role })
+    const token = signToken({ userId: user.id, email: user.email, role: user.role, name: user.name })
 
     const response = NextResponse.json(
-      { message: "User registered successfully", user },
+      { message: "User registered successfully", user, token },
       { status: 201 }
     )
 
     response.cookies.set("token", token, {
       httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 60 * 60 * 24 * 7,
+      path: "/",
+    })
+
+    response.cookies.set("role", user.role, {
+      httpOnly: false, // Accessible by middleware
       secure: process.env.NODE_ENV === "production",
       maxAge: 60 * 60 * 24 * 7,
       path: "/",

@@ -39,6 +39,18 @@ export async function PATCH(
       },
     })
 
+    // Notify patient
+    // @ts-ignore - Prisma client needs regeneration
+    await prisma.notification.create({
+      data: {
+        userId: appointment.patientId,
+        title: "Consultation Confirmed",
+        message: `Dr. ${payload.name} has confirmed your appointment for ${new Date(appointmentDate).toLocaleDateString()} at ${timeSlot}.`,
+        type: "SUCCESS",
+        link: `/appointments`
+      }
+    })
+
     return NextResponse.json(updated)
   } catch (error) {
     console.error("Confirm appointment error:", error)

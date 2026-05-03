@@ -22,6 +22,7 @@ enum Severity {
 
 enum Status {
   PENDING
+  INVITED
   IN_CONSULTATION
   COMPLETED
   CANCELLED
@@ -67,6 +68,19 @@ model User {
   doctorAppointments  Appointment[] @relation("Doctor")
   chatSessions        ChatSession[]
   sentMessages        AppointmentMessage[] @relation("Sender")
+  notifications       Notification[]
+}
+
+model Notification {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String   @db.ObjectId
+  user        User     @relation(fields: [userId], references: [id])
+  title       String
+  message     String
+  type        String   // "INFO", "SUCCESS", "WARNING", "FOLLOW_UP_INVITE"
+  link        String?  // URL to navigate to
+  isRead      Boolean  @default(false)
+  createdAt   DateTime @default(now())
 }
 
 model ChatSession {
@@ -81,12 +95,13 @@ model ChatSession {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   messages    Message[]
+  appointment   Appointment[]
 }
 
 model Message {
   id            String      @id @default(auto()) @map("_id") @db.ObjectId
   chatSessionId String      @db.ObjectId
-  chatSession   ChatSession @relation(fields: [chatSessionId], references: [id])
+  chatSession   ChatSession @relation(fields: [chatSessionId], references: [id], onDelete: Cascade)
   role          String      // "user" or "assistant"
   content       String
   createdAt     DateTime    @default(now())
@@ -99,6 +114,9 @@ model Appointment {
   
   doctorId      String?  @db.ObjectId
   doctor        User?    @relation("Doctor", fields: [doctorId], references: [id])
+
+  chatSessionId String?  @db.ObjectId
+  chatSession   ChatSession? @relation(fields: [chatSessionId], references: [id], onDelete: Cascade)
 
   symptoms      String
   aiDiagnosis   String

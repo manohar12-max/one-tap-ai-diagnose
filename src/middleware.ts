@@ -18,6 +18,7 @@ export function middleware(request: NextRequest) {
   if (!token && !isPublicRoute) {
     const url = request.nextUrl.clone()
     url.pathname = "/login"
+    url.searchParams.set("error", "unauthorized")
     return NextResponse.redirect(url)
   }
 

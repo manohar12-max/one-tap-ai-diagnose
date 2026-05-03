@@ -16,6 +16,13 @@ export async function GET() {
             gender: true,
             city: true
           }
+        },
+        // @ts-ignore - Prisma client needs regeneration
+        appointment: {
+          select: {
+            status: true
+          },
+          take: 1
         }
       },
       take: 20 // Last 20 sessions

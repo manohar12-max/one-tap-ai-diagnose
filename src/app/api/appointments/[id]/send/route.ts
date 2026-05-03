@@ -9,8 +9,12 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id: appointmentId } = await params
-    const { senderId, content } = await req.json()
+    const { id: rawAppointmentId } = await params
+    const { senderId: rawSenderId, content: rawContent } = await req.json()
+    
+    const appointmentId = String(rawAppointmentId).trim()
+    const senderId = String(rawSenderId).trim()
+    const content = String(rawContent).trim()
 
     if (!appointmentId || !senderId || !content) {
       return NextResponse.json({ error: "Missing data" }, { status: 400 })
@@ -19,20 +23,23 @@ export async function POST(
     // 1. Save to Database
     // @ts-ignore
     const message = await prisma.appointmentMessage.create({
-      data: { 
-        appointmentId: String(appointmentId).trim(), 
-        senderId: String(senderId).trim(), 
-        content: String(content).trim() 
-      },
-      include: { sender: { select: { name: true, role: true } } }
+      data: { appointmentId, senderId, content },
+      include: { 
+        sender: { select: { name: true, role: true } },
+        appointment: { select: { doctorId: true, patientId: true } }
+      }
     })
 
     // 2. Broadcast via Global Socket
     const io = globalForIo.io
     if (io) {
-      const roomId = String(appointmentId).trim()
-      console.log(`[Hybrid API] Broadcasting to room: ${roomId}`)
-      io.to(roomId).emit("new-message", message)
+      console.log(`[Hybrid API] Broadcasting to room: ${appointmentId}`)
+      io.to(appointmentId).emit("new-message", message)
+      
+      // Also notify the doctor and patient specifically for dashboard updates
+      const { doctorId, patientId } = (message as any).appointment
+      if (doctorId) io.to(`doctor-${doctorId}`).emit("new-message", message)
+      if (patientId) io.to(`patient-${patientId}`).emit("new-message", message)
     } else {
       console.warn("[Hybrid API] Socket.io not initialized globally")
     }

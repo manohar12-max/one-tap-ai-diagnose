@@ -4,6 +4,7 @@ import { verifyToken } from "@/lib/auth"
 import { Navbar } from "@/components/Navbar"
 import { DiagnosisResultViewWrapper } from "./DiagnosisResultViewWrapper"
 import { redirect } from "next/navigation"
+import { isValidObjectId } from "@/lib/utils"
 
 export default async function DiagnosisPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -13,6 +14,19 @@ export default async function DiagnosisPage({ params }: { params: Promise<{ id: 
 
   if (!user) {
     redirect("/login")
+  }
+
+  // Handle malformed IDs gracefully
+  if (!isValidObjectId(id)) {
+    return (
+      <div className="min-h-screen bg-transparent relative pb-20">
+        <Navbar />
+        <main className="container mx-auto px-6 pt-32 text-center">
+          <h2 className="text-2xl font-black text-foreground">Invalid Session ID</h2>
+          <p className="text-muted-foreground mt-2">The provided session identifier is malformed.</p>
+        </main>
+      </div>
+    )
   }
 
   // @ts-ignore - Prisma client property generated but IDE may be stale

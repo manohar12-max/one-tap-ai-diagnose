@@ -11,7 +11,9 @@ import {
   AlertCircle,
   Calendar,
   ArrowLeft,
-  Clock
+  Clock,
+  Trash2,
+  Loader2
 } from "lucide-react"
 import { Navbar } from "@/components/Navbar"
 import { Card } from "@/components/ui/card"
@@ -20,6 +22,7 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
+import { toast } from "sonner"
 
 export default function ClinicalHistoryPage() {
   const [history, setHistory] = useState<any[]>([])
@@ -43,6 +46,45 @@ export default function ClinicalHistoryPage() {
     fetchHistory()
   }, [])
 
+  const deleteSession = async (e: React.MouseEvent, id: string) => {
+    e.preventDefault()
+    e.stopPropagation()
+    
+    if (!confirm("Are you sure you want to delete this clinical record? This action cannot be undone.")) return
+
+    try {
+      const res = await fetch(`/api/history/${id}`, {
+        method: "DELETE"
+      })
+      if (res.ok) {
+        setHistory(prev => prev.filter(item => item.id !== id))
+        toast.success("Clinical record deleted successfully")
+      } else {
+        toast.error("Failed to delete record")
+      }
+    } catch (error) {
+      toast.error("An error occurred while deleting")
+    }
+  }
+
+  const clearAllHistory = async () => {
+    if (!confirm("Are you sure you want to clear your ENTIRE clinical history? This will delete all AI assessments and chat records permanently.")) return
+
+    try {
+      const res = await fetch("/api/history", {
+        method: "DELETE"
+      })
+      if (res.ok) {
+        setHistory([])
+        toast.success("Clinical history cleared successfully")
+      } else {
+        toast.error("Failed to clear history")
+      }
+    } catch (error) {
+      toast.error("An error occurred while clearing history")
+    }
+  }
+
   const filteredHistory = history.filter(item => 
     item.title?.toLowerCase().includes(search.toLowerCase()) ||
     item.diagnosis?.specialty?.toLowerCase().includes(search.toLowerCase())
@@ -53,7 +95,6 @@ export default function ClinicalHistoryPage() {
       <Navbar />
       
       <main className="container mx-auto px-6 pt-24 space-y-8 relative z-10">
-        {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div className="space-y-1">
             <div className="flex items-center gap-2 text-primary">
@@ -64,15 +105,26 @@ export default function ClinicalHistoryPage() {
             <p className="text-muted-foreground text-sm font-medium">Access your previous AI assessments and clinical chats.</p>
           </div>
           
-          <Link href="/dashboard">
-            <Button variant="ghost" className="gap-2 font-bold text-muted-foreground hover:text-primary">
-              <ArrowLeft size={18} />
-              Back to Dashboard
-            </Button>
-          </Link>
+          <div className="flex items-center gap-4">
+            {history.length > 0 && (
+              <Button 
+                variant="outline" 
+                onClick={clearAllHistory}
+                className="gap-2 font-black text-[10px] uppercase tracking-widest border-destructive/20 text-destructive hover:bg-destructive hover:text-white transition-all h-10 px-4 rounded-xl"
+              >
+                <Trash2 size={14} />
+                Clear All History
+              </Button>
+            )}
+            <Link href="/dashboard">
+              <Button variant="ghost" className="gap-2 font-bold text-muted-foreground hover:text-primary h-10 rounded-xl">
+                <ArrowLeft size={18} />
+                Back
+              </Button>
+            </Link>
+          </div>
         </div>
 
-        {/* Search & Filter Bar */}
         <div className="flex flex-col md:flex-row gap-4">
           <div className="relative flex-1">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
@@ -89,7 +141,6 @@ export default function ClinicalHistoryPage() {
           </Button>
         </div>
 
-        {/* History Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {isLoading ? (
             [1, 2, 3, 4, 5, 6].map(i => (
@@ -103,46 +154,56 @@ export default function ClinicalHistoryPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.05 }}
               >
-                <Link href={`/diagnose/${item.id}`}>
-                  <Card className="p-6 bg-card/40 border-border backdrop-blur-xl hover:border-primary/40 transition-all cursor-pointer group flex flex-col h-full relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-4">
-                       <Badge variant="outline" className={cn(
-                          "text-[9px] font-black tracking-widest uppercase border-0",
-                          item.diagnosis?.severity === 'CRITICAL' ? 'bg-red-500/10 text-red-500' : 
-                          item.diagnosis?.severity === 'HIGH' ? 'bg-orange-500/10 text-orange-500' :
-                          'bg-emerald-500/10 text-emerald-500'
-                       )}>
-                         {item.diagnosis?.severity || 'LOW'}
-                       </Badge>
-                    </div>
-
-                    <div className="space-y-4 flex-1">
-                      <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all duration-300">
-                        {item.diagnosis?.severity === 'CRITICAL' ? <AlertCircle size={20} /> : <Stethoscope size={20} />}
+                <div className="relative group">
+                  <Link href={`/diagnose/${item.id}`}>
+                    <Card className="p-6 bg-card/40 border-border backdrop-blur-xl hover:border-primary/40 transition-all cursor-pointer flex flex-col h-full relative overflow-hidden">
+                      <div className="absolute top-0 right-0 p-4 flex gap-2 items-center">
+                         <Badge variant="outline" className={cn(
+                            "text-[9px] font-black tracking-widest uppercase border-0",
+                            item.diagnosis?.severity === 'CRITICAL' ? 'bg-red-500/10 text-red-500' : 
+                            item.diagnosis?.severity === 'HIGH' ? 'bg-orange-500/10 text-orange-500' :
+                            'bg-emerald-500/10 text-emerald-500'
+                         )}>
+                           {item.diagnosis?.severity || 'LOW'}
+                         </Badge>
                       </div>
-                      
-                      <div className="space-y-1.5">
-                        <h3 className="font-black text-lg text-foreground leading-tight group-hover:text-primary transition-colors line-clamp-2">
-                          {item.title || "Untitled Assessment"}
-                        </h3>
-                        <div className="flex items-center gap-4 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                           <span className="flex items-center gap-1"><Calendar size={10} /> {new Date(item.createdAt).toLocaleDateString()}</span>
-                           <span className="flex items-center gap-1"><Clock size={10} /> {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+
+                      <div className="space-y-4 flex-1">
+                        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover/card:bg-primary group-hover/card:text-white transition-all duration-300">
+                          {item.diagnosis?.severity === 'CRITICAL' ? <AlertCircle size={20} /> : <Stethoscope size={20} />}
+                        </div>
+                        
+                        <div className="space-y-1.5">
+                          <h3 className="font-black text-lg text-foreground leading-tight group-hover/card:text-primary transition-colors line-clamp-2">
+                            {item.title || "Untitled Assessment"}
+                          </h3>
+                          <div className="flex items-center gap-4 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                             <span className="flex items-center gap-1"><Calendar size={10} /> {new Date(item.createdAt).toLocaleDateString()}</span>
+                             <span className="flex items-center gap-1"><Clock size={10} /> {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                          </div>
                         </div>
                       </div>
-                    </div>
 
-                    <div className="mt-6 pt-4 border-t border-border flex justify-between items-center">
-                       <div className="space-y-0.5">
-                         <p className="text-[8px] font-black uppercase text-muted-foreground tracking-widest">Clinical Specialty</p>
-                         <p className="text-xs font-bold text-primary">{item.diagnosis?.specialty}</p>
-                       </div>
-                       <div className="w-8 h-8 rounded-full bg-secondary/50 flex items-center justify-center text-muted-foreground group-hover:bg-primary group-hover:text-white transition-all">
-                         <ChevronRight size={16} />
-                       </div>
-                    </div>
-                  </Card>
-                </Link>
+                      <div className="mt-6 pt-4 border-t border-border flex justify-between items-center">
+                         <div className="space-y-0.5">
+                           <p className="text-[8px] font-black uppercase text-muted-foreground tracking-widest">Clinical Specialty</p>
+                           <p className="text-xs font-bold text-primary">{item.diagnosis?.specialty}</p>
+                         </div>
+                         <div className="w-8 h-8 rounded-full bg-secondary/50 flex items-center justify-center text-muted-foreground group-hover/card:bg-primary group-hover/card:text-white transition-all">
+                           <ChevronRight size={16} />
+                         </div>
+                      </div>
+                    </Card>
+                  </Link>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={(e) => deleteSession(e, item.id)}
+                    className="absolute top-12 right-4 w-8 h-8 rounded-lg bg-destructive/5 text-destructive opacity-40 hover:opacity-100 transition-all hover:bg-destructive hover:text-white z-20"
+                  >
+                    <Trash2 size={14} />
+                  </Button>
+                </div>
               </motion.div>
             ))
           ) : (

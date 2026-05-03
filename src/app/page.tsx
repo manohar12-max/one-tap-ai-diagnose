@@ -12,6 +12,7 @@ import {
   Search, 
   MapPin, 
   ChevronRight, 
+  HeartPulse,
   User, 
   Star,
   Activity,
@@ -57,7 +58,43 @@ export default function Home() {
       <Navbar />
 
       <main className="relative z-10">
-        {/* Hero Section - Now fully responsive */}
+        <section id="ai-pulse" className="pt-4 pb-20 md:pt-6 md:pb-24 bg-secondary/10 dark:bg-slate-900/40 text-foreground dark:text-white overflow-hidden relative border-b border-border transition-colors duration-500">
+          <div className="container mx-auto px-6 relative z-10">
+            <motion.div 
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="flex flex-col items-center gap-4 mb-8"
+            >
+              <div className="relative">
+                <div className="w-24 h-24 rounded-[2.5rem] bg-primary/10 flex items-center justify-center text-primary relative z-10 border border-primary/20 backdrop-blur-xl shadow-2xl shadow-primary/20">
+                  <HeartPulse size={48} className="animate-pulse" strokeWidth={2.5} />
+                </div>
+                <div className="absolute inset-0 bg-primary/20 blur-[40px] rounded-full -z-10 animate-pulse" />
+              </div>
+
+              <div className="space-y-4 text-center">
+                <h2 className="text-3xl md:text-5xl font-extralight tracking-[0.2em] text-muted-foreground uppercase">
+                  One-Tap 
+                  <span className="block text-5xl md:text-7xl font-black tracking-[-0.02em] mt-2 leading-tight transition-all">
+                    <span className="text-primary">AI</span>
+                    <span className="text-foreground mx-4 opacity-20">-</span>
+                    <span className="text-foreground dark:text-white">Diagnose</span>
+                  </span>
+                </h2>
+                <div className="h-1.5 w-24 bg-primary mx-auto rounded-full opacity-40" />
+              </div>
+
+              <p className="text-muted-foreground dark:text-slate-400 max-w-2xl mx-auto text-lg md:text-2xl font-medium leading-relaxed">
+                Skip the waiting room. Describe your symptoms and let our proprietary clinical AI provide immediate guidance.
+              </p>
+            </motion.div>
+            <PulseInput />
+          </div>
+          
+          <div className="absolute bottom-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
+        </section>
+
         <section className="relative py-24 md:py-40 bg-background/40 dark:bg-slate-950/40 text-foreground dark:text-white overflow-hidden transition-colors duration-500">
           <div className="container mx-auto px-6 relative z-10">
             <div className="max-w-5xl mx-auto text-center space-y-12">
@@ -112,7 +149,6 @@ export default function Home() {
             </div>
           </div>
           
-          {/* Subtle Glows - Responsive Opacity */}
           <div className="absolute top-1/2 left-0 -translate-y-1/2 w-full h-full bg-[radial-gradient(circle_at_20%_50%,rgba(59,130,246,0.1),transparent)] pointer-events-none opacity-50 dark:opacity-100" />
           <div className="absolute top-1/2 right-0 -translate-y-1/2 w-full h-full bg-[radial-gradient(circle_at_80%_50%,rgba(99,102,241,0.1),transparent)] pointer-events-none opacity-50 dark:opacity-100" />
         </section>
@@ -144,25 +180,6 @@ export default function Home() {
           </motion.div>
         </section>
 
-        {/* AI Triage Section - Theme Responsive Background */}
-        <section id="ai-pulse" className="py-32 bg-secondary/10 dark:bg-slate-900/40 text-foreground dark:text-white overflow-hidden relative border-y border-border transition-colors duration-500">
-          <div className="container mx-auto px-6 relative z-10">
-            <motion.header 
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="text-center space-y-6 mb-20"
-            >
-              <h2 className="text-4xl md:text-7xl font-black tracking-tighter text-foreground dark:text-white">One-Tap AI Diagnosis</h2>
-              <p className="text-muted-foreground dark:text-slate-400 max-w-2xl mx-auto text-lg md:text-xl font-medium">
-                Skip the waiting room. Describe your symptoms and let our proprietary clinical AI provide immediate guidance.
-              </p>
-            </motion.header>
-            <PulseInput />
-          </div>
-          
-          <div className="absolute bottom-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
-        </section>
 
         {/* Specialties Section */}
         <section className="py-32 container mx-auto px-6">
@@ -235,50 +252,6 @@ export default function Home() {
               </div>
            </div>
         </section>
-
-        {/* Footer */}
-        <footer className="bg-secondary/50 dark:bg-slate-950 text-foreground dark:text-white py-32 border-t border-border mt-20 relative overflow-hidden transition-colors duration-500">
-          <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-primary/5 blur-[150px] rounded-full pointer-events-none" />
-          
-          <div className="container mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-20 border-b border-border pb-20 mb-12 relative z-10">
-            <div className="space-y-8">
-              <Link href="/" className="flex items-center gap-2 font-black text-3xl text-primary">
-                <div className="bg-primary text-white p-1.5 rounded-xl">
-                  <Activity size={24} />
-                </div>
-                <span className="tracking-tighter">One Tap AI <span className="text-foreground dark:text-white">Diagnose</span></span>
-              </Link>
-              <p className="text-muted-foreground text-sm leading-loose font-medium">
-                Pioneering the future of digital health with advanced clinical triage and a seamless provider ecosystem.
-              </p>
-            </div>
-            
-            {[
-              { title: "For Patients", links: ["Search for Doctors", "Search for Clinics", "Book Appointment", "AI Triage"] },
-              { title: "For Doctors", links: ["Provider Portal", "Triage Analytics", "Patient Flow", "Clinical Insights"] },
-              { title: "Resources", links: ["Medical Ethics", "Help Center", "Privacy Shield", "Partner Program"] }
-            ].map((col, i) => (
-              <div key={i} className="space-y-8">
-                <h4 className="font-black text-sm uppercase tracking-[0.2em] text-foreground dark:text-slate-200">{col.title}</h4>
-                <ul className="space-y-4 text-sm text-muted-foreground dark:text-slate-500 font-bold">
-                  {col.links.map((link, j) => (
-                    <li key={j} className="hover:text-primary cursor-pointer transition-colors flex items-center gap-2 group">
-                      <div className="w-1.5 h-1.5 rounded-full bg-border group-hover:bg-primary transition-all" />
-                      {link}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-          <div className="container mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6 text-muted-foreground text-xs font-bold uppercase tracking-widest relative z-10 opacity-60">
-            <span>© 2026 One Tap AI Diagnose • Excellence in HealthTech</span>
-            <div className="flex gap-10">
-               <span className="hover:text-primary cursor-pointer transition-colors">Privacy</span>
-               <span className="hover:text-primary cursor-pointer transition-colors">Terms</span>
-            </div>
-          </div>
-        </footer>
       </main>
     </div>
   )

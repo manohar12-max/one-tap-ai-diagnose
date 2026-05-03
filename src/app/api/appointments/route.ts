@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { getTokenFromRequest, verifyToken } from "@/lib/auth"
+import { Server as ServerIO } from "socket.io"
+
+const globalForIo = global as unknown as { io: ServerIO }
 
 export async function POST(req: Request) {
   try {
@@ -26,6 +29,25 @@ export async function POST(req: Request) {
       },
     })
 
+    // Broadcast to the doctor
+    const io = globalForIo.io
+    if (io && doctorId) {
+      console.log(`[Socket] Broadcasting new-appointment to doctor: doctor-${doctorId}`)
+      io.to(`doctor-${doctorId}`).emit("new-appointment", appointment)
+    }
+
+    // Create notification for doctor
+    // @ts-ignore - Prisma client needs regeneration
+    await prisma.notification.create({
+      data: {
+        userId: doctorId,
+        title: "New Consultation Request",
+        message: `${payload.name} has requested a consultation regarding "${symptoms.slice(0, 30)}..."`,
+        type: "INFO",
+        link: `/staff/appointments/${appointment.id}`
+      }
+    });
+
     return NextResponse.json(appointment)
   } catch (error) {
     console.error("Booking error:", error)
@@ -45,7 +67,19 @@ export async function GET(req: Request) {
         ? { doctorId: payload.userId } 
         : { patientId: payload.userId },
       include: {
-        patient: { select: { name: true, email: true, mobile: true } },
+        patient: { 
+          select: { 
+            name: true, 
+            email: true, 
+            mobile: true,
+            age: true,
+            gender: true,
+            bloodGroup: true,
+            medicalHistory: true,
+            chronicConditions: true,
+            currentMedications: true
+          } 
+        },
         doctor: { select: { name: true, specialty: true, clinicName: true } },
       },
       orderBy: { createdAt: "desc" },

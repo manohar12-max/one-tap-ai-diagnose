@@ -21,6 +21,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
+import { NotificationCenter } from "@/components/NotificationCenter"
+
 export function StaffHeader() {
   const [user, setUser] = useState<any>(null)
 
@@ -32,23 +34,12 @@ export function StaffHeader() {
   return (
     <header className="sticky top-0 z-40 w-full h-20 bg-background/60 backdrop-blur-xl border-b border-border px-8 flex items-center justify-between">
       <div className="flex items-center gap-4 flex-1">
-        <div className="hidden md:flex items-center bg-secondary/50 px-4 py-2 rounded-2xl border border-border w-96 focus-within:ring-2 focus-within:ring-primary/20 transition-all">
-          <Search size={16} className="text-muted-foreground mr-3" />
-          <input
-            type="text"
-            placeholder="Search patients, records, or triage ID..."
-            className="bg-transparent border-none outline-none text-sm w-full font-medium placeholder:text-muted-foreground/60"
-          />
-        </div>
       </div>
 
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-2 pr-4 border-r border-border/50">
           <ModeToggle />
-          <Button variant="ghost" size="icon" className="w-10 h-10 rounded-xl relative hover:bg-secondary">
-            <Bell size={20} className="text-muted-foreground" />
-            <span className="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full border-2 border-background" />
-          </Button>
+          <NotificationCenter user={user} />
         </div>
 
         <DropdownMenu>
@@ -81,10 +72,17 @@ export function StaffHeader() {
             </DropdownMenuItem>
             <DropdownMenuSeparator className="bg-border/50" />
             <DropdownMenuItem
-              onClick={() => {
-                localStorage.removeItem("user")
-                toast.success("Signed out successfully")
-                window.location.href = "/login"
+              onClick={async () => {
+                try {
+                  const res = await fetch("/api/auth/logout", { method: "POST" })
+                  if (res.ok) {
+                    localStorage.clear()
+                    toast.success("Signed out successfully")
+                    window.location.href = "/login"
+                  }
+                } catch (error) {
+                  toast.error("Logout failed")
+                }
               }}
               className="rounded-xl px-3 py-2.5 font-bold text-sm cursor-pointer text-red-500 hover:bg-red-500/10 transition-colors gap-2"
             >

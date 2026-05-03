@@ -29,12 +29,13 @@ export async function POST(req: Request) {
     }
 
     const userId = user._id.toString()
-    const token = signToken({ userId, email: user.email, role: user.role })
+    const token = signToken({ userId, email: user.email, role: user.role, name: user.name })
 
     const response = NextResponse.json(
       { 
         message: "Logged in successfully", 
-        user: { id: userId, email: user.email, name: user.name, role: user.role, isDetailsFilled: user.isDetailsFilled || false } 
+        user: { id: userId, email: user.email, name: user.name, role: user.role, isDetailsFilled: user.isDetailsFilled || false },
+        token: token
       },
       { status: 200 }
     )

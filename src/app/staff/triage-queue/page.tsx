@@ -21,9 +21,12 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
 
+import { useRouter } from "next/navigation"
+
 export default function TriageQueuePage() {
   const [sessions, setSessions] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const router = useRouter()
 
   useEffect(() => {
     fetchTriageQueue()
@@ -103,51 +106,58 @@ export default function TriageQueuePage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.05 }}
               >
-                <Card className="p-6 bg-card/50 hover:bg-card border-border hover:border-primary/30 transition-all cursor-pointer rounded-2xl group shadow-sm hover:shadow-xl hover:shadow-primary/5">
+                <Card 
+                  onClick={() => router.push(`/staff/triage-queue/${session.id}`)}
+                  className="p-6 bg-card/50 hover:bg-card border-border hover:border-primary/30 transition-all cursor-pointer rounded-[2rem] group shadow-sm hover:shadow-xl hover:shadow-primary/5"
+                >
                   <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-                    <div className="flex items-center gap-5 flex-1">
-                      <div className="w-14 h-14 rounded-2xl bg-secondary/50 flex items-center justify-center text-primary group-hover:scale-110 transition-transform shadow-inner">
-                        <UserIcon size={28} />
+                    <div className="flex items-center gap-6 flex-1">
+                      <div className="w-16 h-16 rounded-[1.5rem] bg-secondary flex items-center justify-center text-primary group-hover:scale-105 transition-transform shadow-inner">
+                        <UserIcon size={32} />
                       </div>
                       <div className="space-y-1">
                         <div className="flex items-center gap-3">
-                          <h3 className="text-lg font-black text-foreground tracking-tight">{session.user.name}</h3>
-                          <Badge variant="outline" className="text-[9px] uppercase font-black border-border">
-                            {session.user.age}Y • {session.user.gender}
+                          <h3 className="text-xl font-black text-foreground uppercase tracking-tight group-hover:text-primary transition-colors">{session.user?.name}</h3>
+                          <Badge variant="outline" className="text-[10px] uppercase font-black border-border">
+                            {session.user?.age}Y • {session.user?.gender}
                           </Badge>
                         </div>
-                        <div className="flex flex-wrap gap-2">
+                        <div className="flex flex-wrap gap-3">
                           {session.symptoms?.slice(0, 3).map((s: string) => (
-                            <span key={s} className="text-[10px] font-bold text-muted-foreground flex items-center gap-1.5">
-                              <div className="w-1 h-1 rounded-full bg-primary/40" />
+                            <span key={s} className="text-[11px] font-bold text-muted-foreground flex items-center gap-2">
+                              <div className="w-1.5 h-1.5 rounded-full bg-primary/30" />
                               {s}
                             </span>
                           ))}
                           {session.symptoms?.length > 3 && (
-                            <span className="text-[10px] font-bold text-primary/60">+{session.symptoms.length - 3} more</span>
+                            <span className="text-[11px] font-black text-primary/60">+{session.symptoms.length - 3} MORE</span>
                           )}
                         </div>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-8 w-full md:w-auto">
-                      <div className="hidden lg:flex flex-col items-end">
-                         <Badge className={`font-black text-[10px] uppercase tracking-widest px-3 py-1 ${getSeverityColor(session.diagnosis?.severity)}`}>
-                           {session.diagnosis?.severity || 'PENDING'}
-                         </Badge>
-                         <p className="text-[9px] font-bold text-muted-foreground mt-2 flex items-center gap-1">
-                           <Clock size={10} />
+                    <div className="flex items-center gap-10 w-full md:w-auto">
+                      <div className="hidden lg:flex flex-col items-end gap-2">
+                         <div className="flex items-center gap-2">
+                           <Badge className={`font-black text-[10px] uppercase tracking-[0.2em] px-4 py-1.5 rounded-full ${getSeverityColor(session.diagnosis?.severity)}`}>
+                             {session.diagnosis?.severity || 'PENDING'}
+                           </Badge>
+                           {session.appointment?.[0] && (
+                             <Badge variant="outline" className={`font-black text-[10px] uppercase tracking-[0.1em] border-primary/20 text-primary bg-primary/5`}>
+                               {session.appointment[0].status.replace('_', ' ')}
+                             </Badge>
+                           )}
+                         </div>
+                         <p className="text-[10px] font-black text-muted-foreground mt-1 flex items-center gap-1.5 uppercase tracking-widest">
+                           <Clock size={12} />
                            {new Date(session.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                          </p>
                       </div>
 
-                      <div className="flex items-center gap-2">
-                        <Button variant="ghost" size="icon" className="h-11 w-11 rounded-xl text-muted-foreground hover:bg-secondary">
-                          <MoreVertical size={20} />
-                        </Button>
-                        <Button className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/90 text-white font-black text-xs shadow-lg shadow-primary/20 gap-2">
+                      <div className="flex items-center gap-3">
+                        <Button className="h-14 px-8 rounded-2xl bg-primary hover:bg-primary/90 text-white font-black text-xs shadow-xl shadow-primary/20 gap-3 uppercase tracking-widest">
                           Review Case
-                          <ChevronRight size={16} />
+                          <ChevronRight size={18} />
                         </Button>
                       </div>
                     </div>

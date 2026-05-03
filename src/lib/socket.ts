@@ -19,38 +19,49 @@ export const getSocket = async () => {
 
   socketPromise = (async () => {
     try {
-      console.log("[Socket] Initializing connection...")
+      console.log("[Socket] Triggering server initialization...")
       
-      // Ensure server is ready
-      await fetch('/api/socket').catch(() => {})
+      // Ensure server is ready by pinging the initializer API
+      const initResponse = await fetch('/api/socket').catch(err => {
+        console.warn("[Socket] Pre-init fetch failed (non-critical):", err.message)
+        return null
+      })
 
+      if (initResponse && !initResponse.ok) {
+        console.warn("[Socket] Pre-init response status:", initResponse.status)
+      }
+
+      console.log("[Socket] Connecting to /api/socketio...")
       const newSocket = io({
-        path: "/api/socket",
+        path: "/api/socketio",
         addTrailingSlash: false,
-        reconnectionAttempts: 5,
-        reconnectionDelay: 1000,
+        reconnectionAttempts: 10,
+        reconnectionDelay: 2000,
         autoConnect: true,
-        transports: ["polling", "websocket"],
+        transports: ["polling", "websocket"], // Allow polling first for better reliability
       })
 
       return new Promise<Socket>((resolve) => {
+        const timeout = setTimeout(() => {
+          console.warn("[Socket] Connection timed out, resolving with current state")
+          socket = newSocket
+          resolve(newSocket)
+        }, 10000)
+
         newSocket.on("connect", () => {
-          console.log("[Socket] Connected:", newSocket.id)
+          clearTimeout(timeout)
+          console.log("[Socket] Connected successfully:", newSocket.id)
           socket = newSocket
           resolve(newSocket)
         })
 
         newSocket.on("connect_error", (err) => {
-          console.error("[Socket] Connection error:", err.message)
-          // Fallback resolve after 5s to prevent UI hang
-          setTimeout(() => {
-            socket = newSocket
-            resolve(newSocket)
-          }, 5000)
+          console.error("[Socket] Connection error details:", err.message)
+          // Don't clear timeout here, let it retry or eventually timeout
         })
       })
     } catch (error) {
-      console.error("[Socket] Init failed:", error)
+      console.error("[Socket] Initialization sequence failed:", error)
       socketPromise = null
       throw error
     }

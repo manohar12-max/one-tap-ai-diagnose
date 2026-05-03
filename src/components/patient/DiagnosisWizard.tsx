@@ -2,14 +2,14 @@
 
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { 
-  Brain, 
-  ChevronRight, 
-  ChevronLeft, 
-  Check, 
-  Upload, 
-  Activity, 
-  Stethoscope, 
+import {
+  Brain,
+  ChevronRight,
+  ChevronLeft,
+  Check,
+  Upload,
+  Activity,
+  Stethoscope,
   AlertCircle,
   Clock,
   Thermometer,
@@ -123,9 +123,9 @@ export function DiagnosisWizard() {
   }, [])
 
   const toggleSymptom = (symptom: string) => {
-    setSelectedSymptoms(prev => 
-      prev.includes(symptom) 
-        ? prev.filter(s => s !== symptom) 
+    setSelectedSymptoms(prev =>
+      prev.includes(symptom)
+        ? prev.filter(s => s !== symptom)
         : [...prev, symptom]
     )
   }
@@ -187,8 +187,8 @@ export function DiagnosisWizard() {
   return (
     <div className="max-w-4xl mx-auto w-full px-4 sm:px-0">
       <div className="px-6 pt-4">
-        <Button 
-          variant="ghost" 
+        <Button
+          variant="ghost"
           onClick={() => window.history.back()}
           className="text-muted-foreground hover:text-primary -ml-4 gap-2 font-bold mb-2"
         >
@@ -200,11 +200,11 @@ export function DiagnosisWizard() {
       {/* Progress Stepper */}
       <div className="flex justify-between items-center mb-8 relative px-4">
         <div className="absolute top-1/2 left-0 w-full h-0.5 bg-border -z-10" />
-        <div className="absolute top-1/2 left-0 h-0.5 bg-primary transition-all duration-500 -z-10" 
-             style={{ width: `${((step - 1) / 4) * 100}%` }} />
-        
+        <div className="absolute top-1/2 left-0 h-0.5 bg-primary transition-all duration-500 -z-10"
+          style={{ width: `${((step - 1) / 4) * 100}%` }} />
+
         {[1, 2, 3, 4, 5].map((s) => (
-          <div 
+          <div
             key={s}
             className={cn(
               "w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all duration-300",
@@ -225,7 +225,7 @@ export function DiagnosisWizard() {
           transition={{ duration: 0.3 }}
         >
           <Card className="p-6 bg-card/50 border-border backdrop-blur-xl shadow-2xl rounded-2xl overflow-hidden min-h-[500px] flex flex-col">
-            
+
             {/* Step 1: Body Part Selection */}
             {step === 1 && (
               <div className="space-y-6 flex-1">
@@ -311,7 +311,7 @@ export function DiagnosisWizard() {
                   {/* Custom Symptom Input */}
                   {isAddingCustom ? (
                     <div className="col-span-2 flex items-center gap-2 p-1 bg-secondary/30 rounded-2xl border-2 border-primary/30">
-                      <input 
+                      <input
                         autoFocus
                         value={customSymptom}
                         onChange={(e) => setCustomSymptom(e.target.value)}
@@ -365,10 +365,10 @@ export function DiagnosisWizard() {
                         Level {intensity}/10
                       </Badge>
                     </div>
-                    <input 
-                      type="range" 
-                      min="1" 
-                      max="10" 
+                    <input
+                      type="range"
+                      min="1"
+                      max="10"
                       value={intensity}
                       onChange={(e) => setIntensity(parseInt(e.target.value))}
                       className="w-full h-2 bg-secondary rounded-lg appearance-none cursor-pointer accent-primary"
@@ -426,7 +426,7 @@ export function DiagnosisWizard() {
                       {images.map((img, i) => (
                         <div key={i} className="relative w-20 h-20 rounded-xl overflow-hidden group">
                           <img src={img} alt="upload" className="w-full h-full object-cover" />
-                          <button 
+                          <button
                             onClick={() => removeImage(i)}
                             className="absolute top-1 right-1 p-1 bg-red-500 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity"
                           >
@@ -472,22 +472,22 @@ export function DiagnosisWizard() {
                             Medical Context Active
                           </p>
                           <div className="space-y-2">
-                             {userDetails.allergies?.length > 0 && (
-                               <div>
-                                 <p className="text-[8px] font-bold text-muted-foreground uppercase">Allergies</p>
-                                 <p className="text-[10px] font-bold text-foreground">{userDetails.allergies.join(", ")}</p>
-                               </div>
-                             )}
-                             {userDetails.chronicConditions?.length > 0 && (
-                               <div>
-                                 <p className="text-[8px] font-bold text-muted-foreground uppercase">Chronic Conditions</p>
-                                 <p className="text-[10px] font-bold text-foreground">{userDetails.chronicConditions.join(", ")}</p>
-                               </div>
-                             )}
+                            {userDetails.allergies?.length > 0 && (
+                              <div>
+                                <p className="text-[8px] font-bold text-muted-foreground uppercase">Allergies</p>
+                                <p className="text-[10px] font-bold text-foreground">{userDetails.allergies.join(", ")}</p>
+                              </div>
+                            )}
+                            {userDetails.chronicConditions?.length > 0 && (
+                              <div>
+                                <p className="text-[8px] font-bold text-muted-foreground uppercase">Chronic Conditions</p>
+                                <p className="text-[10px] font-bold text-foreground">{userDetails.chronicConditions.join(", ")}</p>
+                              </div>
+                            )}
                           </div>
                         </div>
                       )}
-                      
+
                       {images.length > 0 && (
                         <div className="mt-4">
                           <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Attached Images</p>
@@ -518,7 +518,7 @@ export function DiagnosisWizard() {
                         <p className="text-[10px] font-black text-muted-foreground">{Math.round(progress)}%</p>
                       </div>
                       <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
-                        <motion.div 
+                        <motion.div
                           initial={{ width: 0 }}
                           animate={{ width: `${progress}%` }}
                           className="h-full bg-primary shadow-[0_0_15px_rgba(var(--primary),0.5)]"

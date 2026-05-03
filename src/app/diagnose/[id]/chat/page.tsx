@@ -4,6 +4,7 @@ import { verifyToken } from "@/lib/auth"
 import { Navbar } from "@/components/Navbar"
 import { redirect } from "next/navigation"
 import { DiagnosisChat } from "@/components/patient/DiagnosisChat"
+import { isValidObjectId } from "@/lib/utils"
 
 export default async function ChatPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -13,6 +14,10 @@ export default async function ChatPage({ params }: { params: Promise<{ id: strin
 
   if (!user) {
     redirect("/login")
+  }
+
+  if (!isValidObjectId(id)) {
+    return redirect("/dashboard")
   }
 
   // @ts-ignore - Prisma client property generated but IDE may be stale

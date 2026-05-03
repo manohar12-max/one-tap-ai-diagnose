@@ -9,7 +9,7 @@ export default function TriagePage() {
   return (
     <div className="min-h-screen bg-transparent relative pb-20">
       <Navbar />
-      
+
       <main className="container mx-auto px-6 pt-24 space-y-12 relative z-10">
         {/* Page Header */}
         <div className="max-w-4xl mx-auto text-center space-y-3">
@@ -21,16 +21,16 @@ export default function TriagePage() {
             <Brain size={12} className="animate-pulse" />
             AI Consultation Mode Active
           </motion.div>
-          
-          <motion.h1 
+
+          <motion.h1
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             className="text-2xl md:text-4xl font-black tracking-tight text-foreground"
           >
             Clinical <span className="text-primary">Triage</span> Intelligence
           </motion.h1>
-          
-          <motion.p 
+
+          <motion.p
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.1 }}
@@ -50,41 +50,41 @@ export default function TriagePage() {
         </motion.div>
 
         {/* Footer info for confidence */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
           className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 pt-12 border-t border-border mt-12"
         >
-           <div className="flex items-center gap-4 text-muted-foreground">
-             <div className="w-10 h-10 rounded-full bg-secondary/50 flex items-center justify-center text-primary">
-               <ShieldCheck size={20} />
-             </div>
-             <div className="space-y-1">
-               <p className="text-[10px] font-black uppercase tracking-widest">Privacy First</p>
-               <p className="text-xs font-bold">HIPAA Compliant Data Handling</p>
-             </div>
-           </div>
-           
-           <div className="flex items-center gap-4 text-muted-foreground">
-             <div className="w-10 h-10 rounded-full bg-secondary/50 flex items-center justify-center text-primary">
-               <Activity size={20} />
-             </div>
-             <div className="space-y-1">
-               <p className="text-[10px] font-black uppercase tracking-widest">Real-time Analysis</p>
-               <p className="text-xs font-bold">Instant Severity Assessment</p>
-             </div>
-           </div>
+          <div className="flex items-center gap-4 text-muted-foreground">
+            <div className="w-10 h-10 rounded-full bg-secondary/50 flex items-center justify-center text-primary">
+              <ShieldCheck size={20} />
+            </div>
+            <div className="space-y-1">
+              <p className="text-[10px] font-black uppercase tracking-widest">Privacy First</p>
+              <p className="text-xs font-bold">HIPAA Compliant Data Handling</p>
+            </div>
+          </div>
 
-           <div className="flex items-center gap-4 text-muted-foreground">
-             <div className="w-10 h-10 rounded-full bg-secondary/50 flex items-center justify-center text-primary">
-               <Brain size={20} />
-             </div>
-             <div className="space-y-1">
-               <p className="text-[10px] font-black uppercase tracking-widest">Expert Logic</p>
-               <p className="text-xs font-bold">Clinical Specialization matching</p>
-             </div>
-           </div>
+          <div className="flex items-center gap-4 text-muted-foreground">
+            <div className="w-10 h-10 rounded-full bg-secondary/50 flex items-center justify-center text-primary">
+              <Activity size={20} />
+            </div>
+            <div className="space-y-1">
+              <p className="text-[10px] font-black uppercase tracking-widest">Real-time Analysis</p>
+              <p className="text-xs font-bold">Instant Severity Assessment</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-4 text-muted-foreground">
+            <div className="w-10 h-10 rounded-full bg-secondary/50 flex items-center justify-center text-primary">
+              <Brain size={20} />
+            </div>
+            <div className="space-y-1">
+              <p className="text-[10px] font-black uppercase tracking-widest">Expert Logic</p>
+              <p className="text-xs font-bold">Clinical Specialization matching</p>
+            </div>
+          </div>
         </motion.div>
       </main>
     </div>

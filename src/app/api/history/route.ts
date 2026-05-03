@@ -6,7 +6,7 @@ import { verifyToken } from "@/lib/auth"
 
 export async function GET() {
   try {
-    // Get user from auth token
+
     const cookieStore = await cookies()
     const token = cookieStore.get("token")?.value
     const user = token ? verifyToken(token) : null
@@ -15,7 +15,6 @@ export async function GET() {
       return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 })
     }
 
-    // @ts-ignore - Prisma client property generated but IDE may be stale
     const sessions = await prisma.chatSession.findMany({
       where: { userId: user.userId },
       orderBy: { createdAt: "desc" },
@@ -33,6 +32,33 @@ export async function GET() {
   } catch (error) {
     console.error("Fetch History Error:", error)
     return new Response(JSON.stringify({ error: "Failed to fetch history" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    })
+  }
+}
+
+export async function DELETE() {
+  try {
+    const cookieStore = await cookies()
+    const token = cookieStore.get("token")?.value
+    const user = token ? verifyToken(token) : null
+
+    if (!user) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 })
+    }
+
+    await prisma.chatSession.deleteMany({
+      where: { userId: user.userId }
+    })
+
+    return new Response(JSON.stringify({ message: "History cleared successfully" }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    })
+  } catch (error) {
+    console.error("Clear History Error:", error)
+    return new Response(JSON.stringify({ error: "Failed to clear history" }), {
       status: 500,
       headers: { "Content-Type": "application/json" },
     })

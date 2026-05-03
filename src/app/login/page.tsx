@@ -1,10 +1,10 @@
 "use client"
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useState, useEffect } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { motion } from "framer-motion"
-import { Activity, Mail, Lock, Loader2, ArrowRight, FlaskConical, Stethoscope, Pill } from "lucide-react"
+import { HeartPulse, Mail, Lock, Loader2, ArrowRight, FlaskConical, Stethoscope, Pill } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -17,6 +17,16 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const router = useRouter()
+  const searchParams = useSearchParams()
+
+  useEffect(() => {
+    const error = searchParams?.get("error")
+    if (error === "unauthorized") {
+      toast.error("Authentication Required", {
+        description: "Please login to access premium clinical features.",
+      })
+    }
+  }, [searchParams])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -33,6 +43,7 @@ export default function LoginPage() {
 
       if (res.ok) {
         localStorage.setItem("user", JSON.stringify(data.user))
+        localStorage.setItem("token", data.token)
         toast.success(`Welcome back, ${data.user.name}!`, {
           description: data.user.role === 'DOCTOR' ? "Opening Clinical Dashboard..." : "Reviewing your clinical profile...",
         })
@@ -78,7 +89,7 @@ export default function LoginPage() {
           <Card className="p-8 bg-card/50 border-border backdrop-blur-xl shadow-2xl rounded-3xl">
             <div className="text-center space-y-2 mb-8">
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 text-primary mb-4">
-                <Activity size={32} />
+                <HeartPulse size={32} />
               </div>
               <h1 className="text-3xl font-black text-foreground tracking-tight">Welcome Back</h1>
               <p className="text-muted-foreground text-sm">Secure clinical access to One Tap AI Diagnose</p>

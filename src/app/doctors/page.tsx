@@ -2,15 +2,15 @@
 
 import { useState, useEffect, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { 
-  Search, 
-  MapPin, 
-  Stethoscope, 
-  ShieldCheck, 
-  ChevronRight, 
-  Star, 
-  Navigation, 
-  Award, 
+import {
+  Search,
+  MapPin,
+  Stethoscope,
+  ShieldCheck,
+  ChevronRight,
+  Star,
+  Navigation,
+  Award,
   Filter,
   Activity,
   Loader2,
@@ -55,7 +55,7 @@ export default function FindDoctorsPage() {
   const [loadingReg, setLoadingReg] = useState(false)
   const [loadingOsm, setLoadingOsm] = useState(false)
   const [filter, setFilter] = useState<"all" | "registered" | "nearby">("all")
-  
+
   // Dropdown states
   const [showDropdown, setShowDropdown] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -80,7 +80,7 @@ export default function FindDoctorsPage() {
       setSearchCity(userData.city)
       fetchDoctors(userData.city, "")
     } else {
-      fetchDoctors("Mumbai", "") 
+      fetchDoctors("Mumbai", "")
     }
   }, [])
 
@@ -89,7 +89,7 @@ export default function FindDoctorsPage() {
     setLoadingOsm(true)
     setRegisteredDoctors([])
     setOsmDoctors([])
-    
+
     // 1. Fetch Registered (Fast)
     const fetchRegistered = async () => {
       try {
@@ -134,7 +134,7 @@ export default function FindDoctorsPage() {
     fetchDoctors(searchCity, searchSpecialty)
   }
 
-  const filteredSpecialties = SPECIALTIES.filter(s => 
+  const filteredSpecialties = SPECIALTIES.filter(s =>
     s.toLowerCase().includes(searchSpecialty.toLowerCase())
   )
 
@@ -145,9 +145,9 @@ export default function FindDoctorsPage() {
       <Navbar />
 
       {selectedDoctor && (
-        <BookingModal 
-          isOpen={isBookingModalOpen} 
-          onClose={() => setIsBookingModalOpen(false)} 
+        <BookingModal
+          isOpen={isBookingModalOpen}
+          onClose={() => setIsBookingModalOpen(false)}
           doctor={{
             id: selectedDoctor.id,
             name: selectedDoctor.name,
@@ -159,8 +159,8 @@ export default function FindDoctorsPage() {
 
       <main className="relative z-10 pt-12 pb-32 px-6">
         <div className="max-w-6xl mx-auto mb-10">
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             onClick={() => window.history.back()}
             className="text-muted-foreground hover:text-primary -ml-4 gap-2 font-bold mb-6"
           >
@@ -192,8 +192,8 @@ export default function FindDoctorsPage() {
             {/* Searchable Specialty Dropdown */}
             <div className="flex-1 relative group" ref={dropdownRef}>
               <Stethoscope className="absolute left-6 top-1/2 -translate-y-1/2 text-primary group-focus-within:scale-110 transition-transform z-10" size={20} />
-              <Input 
-                placeholder="Search Specialty..." 
+              <Input
+                placeholder="Search Specialty..."
                 value={searchSpecialty}
                 onFocus={() => setShowDropdown(true)}
                 onChange={(e) => {
@@ -204,9 +204,9 @@ export default function FindDoctorsPage() {
               />
               <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
                 {searchSpecialty && (
-                   <X 
-                    size={16} 
-                    className="text-muted-foreground hover:text-primary cursor-pointer" 
+                  <X
+                    size={16}
+                    className="text-muted-foreground hover:text-primary cursor-pointer"
                     onClick={() => setSearchSpecialty("")}
                   />
                 )}
@@ -251,8 +251,8 @@ export default function FindDoctorsPage() {
 
             <div className="flex-1 relative group">
               <MapPin className="absolute left-6 top-1/2 -translate-y-1/2 text-primary group-focus-within:scale-110 transition-transform" size={20} />
-              <Input 
-                placeholder="City (e.g. Mumbai)" 
+              <Input
+                placeholder="City (e.g. Mumbai)"
                 value={searchCity}
                 onChange={(e) => setSearchCity(e.target.value)}
                 className="h-16 pl-14 pr-6 bg-secondary/30 border-0 rounded-2xl font-black text-lg focus-visible:ring-2 focus-visible:ring-primary/20 transition-all"
@@ -274,9 +274,8 @@ export default function FindDoctorsPage() {
                 key={f.id}
                 onClick={() => setFilter(f.id as any)}
                 variant={filter === f.id ? "default" : "outline"}
-                className={`h-10 px-6 rounded-full font-black text-[10px] uppercase tracking-widest gap-2 transition-all ${
-                  filter === f.id ? "shadow-lg shadow-primary/20" : "bg-card/50"
-                }`}
+                className={`h-10 px-6 rounded-full font-black text-[10px] uppercase tracking-widest gap-2 transition-all ${filter === f.id ? "shadow-lg shadow-primary/20" : "bg-card/50"
+                  }`}
               >
                 <f.icon size={14} />
                 {f.label}
@@ -306,10 +305,10 @@ export default function FindDoctorsPage() {
                   ))
                 ) : registeredDoctors.length > 0 ? (
                   registeredDoctors.map((doc, i) => (
-                    <DoctorCard 
-                      key={doc.id} 
-                      doctor={doc} 
-                      index={i} 
+                    <DoctorCard
+                      key={doc.id}
+                      doctor={doc}
+                      index={i}
                       onBook={() => {
                         setSelectedDoctor(doc)
                         setIsBookingModalOpen(true)
@@ -351,10 +350,10 @@ export default function FindDoctorsPage() {
                   ))
                 ) : osmDoctors.length > 0 ? (
                   osmDoctors.map((doc, i) => (
-                    <DoctorCard 
-                      key={doc.id} 
-                      doctor={doc} 
-                      index={i} 
+                    <DoctorCard
+                      key={doc.id}
+                      doctor={doc}
+                      index={i}
                       onBook={() => {
                         setSelectedDoctor(doc)
                         setIsBookingModalOpen(true)
@@ -429,17 +428,17 @@ function DoctorCard({ doctor, index, onBook }: { doctor: any, index: number, onB
         </div>
 
         <div className="mt-8 flex gap-3">
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             size="icon"
             className="h-12 w-12 rounded-2xl border border-border hover:bg-secondary transition-all"
             asChild
           >
-             <a href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(doctor.location)}`} target="_blank" rel="noopener noreferrer">
+            <a href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(doctor.location)}`} target="_blank" rel="noopener noreferrer">
               <Navigation size={20} className="text-primary" />
             </a>
           </Button>
-          <Button 
+          <Button
             onClick={onBook}
             className="flex-1 h-12 rounded-2xl bg-primary hover:bg-primary/90 text-white font-black text-xs gap-2 shadow-lg shadow-primary/20"
           >
