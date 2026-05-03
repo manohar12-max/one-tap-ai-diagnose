@@ -29,6 +29,12 @@ import { Badge } from "@/components/ui/badge"
 const COMMON_ALLERGIES = ["Penicillin", "Peanuts", "Dust", "Latex", "Sulfa", "Shellfish", "Aspirin"];
 const CHRONIC_CONDITIONS = ["Diabetes", "Hypertension", "Asthma", "Thyroid", "Cholesterol", "PCOS"];
 
+const SPECIALTIES = [
+  "Cardiologist", "Dermatologist", "Neurologist", "Pediatrician", "Orthopedic",
+  "General Physician", "Gynecologist", "ENT Specialist", "Dentist", "Ophthalmologist",
+  "Psychiatrist", "Urologist", "Gastroenterologist", "Oncologist"
+];
+
 export default function OnboardingPage() {
   const [user, setUser] = useState<any>(null)
   const [formData, setFormData] = useState<any>({
@@ -60,6 +66,8 @@ export default function OnboardingPage() {
   
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+  const [showSpecialtyDropdown, setShowSpecialtyDropdown] = useState(false)
+  const [specialtySearch, setSpecialtySearch] = useState("")
   const router = useRouter()
 
   useEffect(() => {
@@ -71,6 +79,10 @@ export default function OnboardingPage() {
     }
     checkUser()
   }, [])
+
+  const filteredSpecialties = SPECIALTIES.filter(s =>
+    s.toLowerCase().includes(specialtySearch.toLowerCase())
+  )
 
   const toggleChip = (field: "allergies" | "chronicConditions", value: string) => {
     setFormData((prev: any) => {
@@ -212,15 +224,38 @@ export default function OnboardingPage() {
                         />
                       </div>
                     </div>
-                    <div className="space-y-3">
+                    <div className="space-y-3 relative">
                       <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] ml-1">Specialization</label>
-                      <Input
-                        placeholder="e.g. Cardiologist"
-                        value={formData.specialty}
-                        onChange={(e) => setFormData({ ...formData, specialty: e.target.value })}
-                        className="bg-secondary/30 border-border h-14 px-6 rounded-2xl text-foreground focus:ring-4 focus:ring-primary/10 font-bold"
-                        required
-                      />
+                      <div className="relative group">
+                        <Input
+                          placeholder="Search Specialty"
+                          value={specialtySearch}
+                          onFocus={() => setShowSpecialtyDropdown(true)}
+                          onChange={(e) => {
+                            setSpecialtySearch(e.target.value)
+                            setShowSpecialtyDropdown(true)
+                          }}
+                          className="bg-secondary/30 border-border h-14 px-6 rounded-2xl text-foreground focus:ring-4 focus:ring-primary/10 font-bold"
+                          required
+                        />
+                        {showSpecialtyDropdown && (
+                          <div className="absolute top-full left-0 w-full mt-2 bg-card border border-border rounded-2xl shadow-2xl z-[100] max-h-48 overflow-y-auto custom-scrollbar p-2">
+                            {filteredSpecialties.map(s => (
+                              <div
+                                key={s}
+                                onClick={() => {
+                                  setFormData({ ...formData, specialty: s })
+                                  setSpecialtySearch(s)
+                                  setShowSpecialtyDropdown(false)
+                                }}
+                                className="px-4 py-2 hover:bg-primary/10 rounded-xl cursor-pointer text-sm font-bold transition-colors"
+                              >
+                                {s}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </div>
                     <div className="space-y-3">
                       <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] ml-1">License No.</label>

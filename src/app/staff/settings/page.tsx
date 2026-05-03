@@ -20,6 +20,12 @@ import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { toast } from "sonner"
 
+const SPECIALTIES = [
+  "Cardiologist", "Dermatologist", "Neurologist", "Pediatrician", "Orthopedic",
+  "General Physician", "Gynecologist", "ENT Specialist", "Dentist", "Ophthalmologist",
+  "Psychiatrist", "Urologist", "Gastroenterologist", "Oncologist"
+];
+
 export default function StaffSettingsPage() {
   const [loading, setLoading] = useState(false)
   const [fetching, setFetching] = useState(true)
@@ -34,6 +40,8 @@ export default function StaffSettingsPage() {
     bio: "",
     availability: ""
   })
+  const [showDropdown, setShowDropdown] = useState(false)
+  const [searchTerm, setSearchTerm] = useState("")
 
   useEffect(() => {
     const fetchDetails = async () => {
@@ -52,6 +60,7 @@ export default function StaffSettingsPage() {
             bio: data.bio || "",
             availability: data.availability || ""
           })
+          setSearchTerm(data.specialty || "")
         }
       } catch (err) {
         console.error("Failed to fetch details", err)
@@ -61,6 +70,10 @@ export default function StaffSettingsPage() {
     }
     fetchDetails()
   }, [])
+
+  const filteredSpecialties = SPECIALTIES.filter(s =>
+    s.toLowerCase().includes(searchTerm.toLowerCase())
+  )
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -77,11 +90,9 @@ export default function StaffSettingsPage() {
           description: "Your clinical credentials have been synced.",
         })
         
-        // Update local storage role data if needed
         const userData = JSON.parse(localStorage.getItem("user") || "{}")
         localStorage.setItem("user", JSON.stringify({ ...userData, isDetailsFilled: true }))
 
-        // Refresh the whole page and navigate to the overview as requested
         setTimeout(() => {
           window.location.href = "/staff/dashboard"
         }, 1500)
@@ -129,17 +140,42 @@ export default function StaffSettingsPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
+              <div className="space-y-2 relative">
                 <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Specialty</label>
                 <div className="relative group">
                   <Stethoscope className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors" size={18} />
                   <Input
-                    placeholder="e.g. Cardiologist"
-                    value={formData.specialty}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, specialty: e.target.value })}
+                    placeholder="Search or Select Specialty"
+                    value={searchTerm}
+                    onFocus={() => setShowDropdown(true)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                      setSearchTerm(e.target.value)
+                      setShowDropdown(true)
+                    }}
                     className="bg-secondary/30 border-border h-12 pl-12 rounded-2xl text-foreground font-bold focus:ring-4 focus:ring-primary/10"
                     required
                   />
+                  {showDropdown && (
+                    <div className="absolute top-full left-0 w-full mt-2 bg-card border border-border rounded-2xl shadow-2xl z-[100] max-h-60 overflow-y-auto custom-scrollbar p-2">
+                      {filteredSpecialties.length > 0 ? (
+                        filteredSpecialties.map(s => (
+                          <div
+                            key={s}
+                            onClick={() => {
+                              setFormData({ ...formData, specialty: s })
+                              setSearchTerm(s)
+                              setShowDropdown(false)
+                            }}
+                            className="px-4 py-2 hover:bg-primary/10 rounded-xl cursor-pointer text-sm font-bold transition-colors"
+                          >
+                            {s}
+                          </div>
+                        ))
+                      ) : (
+                        <div className="px-4 py-2 text-xs text-muted-foreground italic">No matches found</div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
 

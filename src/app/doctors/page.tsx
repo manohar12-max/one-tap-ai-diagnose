@@ -80,7 +80,7 @@ export default function FindDoctorsPage() {
       setSearchCity(userData.city)
       fetchDoctors(userData.city, "")
     } else {
-      fetchDoctors("Mumbai", "")
+      fetchDoctors("", "")
     }
   }, [])
 
@@ -219,7 +219,7 @@ export default function FindDoctorsPage() {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 10 }}
-                    className="absolute top-full left-0 w-full mt-3 bg-card/95 backdrop-blur-2xl border border-border rounded-3xl shadow-3xl overflow-hidden z-50 max-h-80 overflow-y-auto custom-scrollbar"
+                    className="absolute top-full left-0 w-full mt-3 bg-card/95 backdrop-blur-2xl border border-border rounded-3xl shadow-3xl overflow-hidden z-[100] max-h-80 overflow-y-auto custom-scrollbar"
                   >
                     <div className="p-2">
                       {filteredSpecialties.length > 0 ? (

@@ -40,8 +40,10 @@ export async function PATCH(
       }
     });
 
-    // Notify doctor
-    // @ts-ignore - Prisma client needs regeneration
+    if (!appointment.doctorId) {
+      return NextResponse.json({ error: "No doctor assigned to this appointment" }, { status: 400 });
+    }
+
     await prisma.notification.create({
       data: {
         userId: appointment.doctorId,

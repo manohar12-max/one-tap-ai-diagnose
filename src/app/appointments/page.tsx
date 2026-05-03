@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import {
   Calendar,
@@ -29,7 +29,7 @@ import { cn } from "@/lib/utils"
 
 import { useSearchParams } from "next/navigation"
 
-export default function PatientAppointmentsPage() {
+function AppointmentsContent() {
   const [appointments, setAppointments] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedAppointment, setSelectedAppointment] = useState<any>(null)
@@ -503,5 +503,18 @@ export default function PatientAppointmentsPage() {
         )}
       </AnimatePresence>
     </div>
+  )
+}
+
+export default function PatientAppointmentsPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
+        <Loader2 size={48} className="animate-spin text-primary/20" />
+        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground">Syncing medical records...</p>
+      </div>
+    }>
+      <AppointmentsContent />
+    </Suspense>
   )
 }

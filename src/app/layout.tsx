@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { Suspense } from "react";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { MedicalBackground } from "@/components/MedicalBackground";
@@ -30,9 +31,11 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <MedicalBackground />
-          <LoadingBar />
+          <Suspense fallback={null}>
+            <LoadingBar />
+            <LoginIncentiveModal />
+          </Suspense>
           <Toaster richColors position="top-right" closeButton />
-          <LoginIncentiveModal />
           {children}
           <Footer />
         </ThemeProvider>

@@ -15,12 +15,12 @@ import { HeartPulse, Sparkles, ArrowRight } from "lucide-react"
 export function LoginIncentiveModal() {
   const [isOpen, setIsOpen] = useState(false)
   const pathname = usePathname()
+  const router = useRouter()
   const [lastPromptTime, setLastPromptTime] = useState(Date.now())
 
   useEffect(() => {
-    // List of pages where the modal should NEVER appear
     const authPages = ["/login", "/register"]
-    if (authPages.includes(pathname)) return
+    if (pathname && authPages.includes(pathname)) return
 
     const checkAuthAndShow = () => {
       const user = typeof window !== "undefined" ? localStorage.getItem("user") : null
