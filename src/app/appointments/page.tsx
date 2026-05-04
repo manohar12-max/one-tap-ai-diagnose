@@ -27,7 +27,7 @@ import { ChatInterface } from "@/components/appointments/ChatInterface"
 import { combineDateTime } from "@/lib/utils/date"
 import { cn } from "@/lib/utils"
 
-import { useSearchParams } from "next/navigation"
+import { useSearchParams, useRouter } from "next/navigation"
 
 function AppointmentsContent() {
   const [appointments, setAppointments] = useState<any[]>([])
@@ -37,6 +37,7 @@ function AppointmentsContent() {
   const [isDetailsOpen, setIsDetailsOpen] = useState(false)
   const [currentUser, setCurrentUser] = useState<any>(null)
   const searchParams = useSearchParams()
+  const router = useRouter()
   const targetId = searchParams ? searchParams.get("id") : null
 
 
@@ -46,6 +47,11 @@ function AppointmentsContent() {
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user") || "{}")
+    if (user.role === 'DOCTOR' || user.role === 'ADMIN') {
+      router.push("/staff/dashboard")
+      return
+    }
+
     setCurrentUser(user)
     fetchAppointments()
   }, [])

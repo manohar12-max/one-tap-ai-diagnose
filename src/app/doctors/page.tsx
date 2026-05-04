@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
+import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import {
   Search,
@@ -48,6 +49,8 @@ const SPECIALTIES = [
 ];
 
 export default function FindDoctorsPage() {
+  const router = useRouter()
+
   const [searchSpecialty, setSearchSpecialty] = useState("")
   const [searchCity, setSearchCity] = useState("")
   const [registeredDoctors, setRegisteredDoctors] = useState<any[]>([])
@@ -76,6 +79,11 @@ export default function FindDoctorsPage() {
 
   useEffect(() => {
     const userData = JSON.parse(localStorage.getItem("user") || "{}")
+    if (userData.role === 'DOCTOR' || userData.role === 'ADMIN') {
+      router.push("/staff/dashboard")
+      return
+    }
+
     if (userData.city) {
       setSearchCity(userData.city)
       fetchDoctors(userData.city, "")
