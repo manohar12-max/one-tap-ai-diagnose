@@ -16,8 +16,11 @@ import {
   Navigation,
   Phone,
   LocateFixed,
-  Building2
+  Building2,
+  Info,
+  Stethoscope
 } from "lucide-react"
+import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -254,7 +257,7 @@ export function DoctorMatch({ specialty, onBack, initialDiagnosis }: Props) {
           <div className="space-y-1">
             <div className="flex items-center gap-3">
                <h2 className="text-4xl md:text-5xl font-black text-foreground tracking-tight">
-                Nearby <span className="text-primary">Specialists</span>
+                Recommended <span className="text-primary">Specialists</span>
               </h2>
               {(loadingReg || loadingOsm) && <Loader2 size={24} className="animate-spin text-primary mt-2" />}
             </div>
@@ -297,20 +300,57 @@ export function DoctorMatch({ specialty, onBack, initialDiagnosis }: Props) {
                 <div key={i} className="h-64 rounded-[2rem] bg-secondary/20 animate-pulse border border-border" />
               ))
             ) : registeredDoctors.length > 0 ? (
-              registeredDoctors.map((doctor, i) => (
-                <DoctorCard 
-                  key={doctor.id} 
-                  doctor={doctor} 
-                  index={i} 
-                  onBook={(doc) => {
-                    setSelectedDoctor(doc)
-                    setIsBookingModalOpen(true)
-                  }} 
-                />
-              ))
+              <div className="col-span-full space-y-8">
+                {registeredDoctors.every((d: any) => !d.isLocal) && (
+                   <div className="p-6 rounded-[2rem] bg-amber-500/5 border-2 border-dashed border-amber-500/20 flex flex-col items-center text-center gap-4">
+                     <div className="w-12 h-12 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-500">
+                        <Activity size={24} />
+                     </div>
+                     <div className="space-y-1">
+                       <h4 className="text-lg font-black text-amber-700">No local specialists in {userCity}</h4>
+                       <p className="text-sm font-medium text-amber-600/80">
+                         We couldn't find anyone in your immediate area, but these highly-rated specialists are available for <span className="font-black underline decoration-amber-500/30">Immediate Online Consultation</span>.
+                       </p>
+                     </div>
+                   </div>
+                )}
+                {registeredDoctors.every((d: any) => !d.isSpecialtyMatch) && (
+                   <div className="p-4 rounded-2xl bg-secondary/30 border border-border flex items-center gap-3">
+                     <Stethoscope size={18} className="text-muted-foreground" />
+                     <p className="text-xs font-bold text-muted-foreground">
+                       No exact {specialty} match found. These <span className="text-foreground">General Specialists</span> can provide initial guidance.
+                     </p>
+                   </div>
+                )}
+                {registeredDoctors.some((d: any) => !d.isLocal) && !registeredDoctors.every((d: any) => !d.isLocal) && (
+                   <div className="p-4 rounded-2xl bg-primary/5 border border-primary/10 flex items-center gap-3">
+                     <Info size={18} className="text-primary" />
+                     <p className="text-xs font-bold text-muted-foreground">
+                       Showing local specialists first. Other experts are available for <span className="text-primary">Online Consultation</span>.
+                     </p>
+                   </div>
+                )}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  {registeredDoctors.map((doctor, i) => (
+                    <DoctorCard 
+                      key={doctor.id} 
+                      doctor={doctor} 
+                      index={i} 
+                      onBook={(doc) => {
+                        setSelectedDoctor(doc)
+                        setIsBookingModalOpen(true)
+                      }} 
+                    />
+                  ))}
+                </div>
+              </div>
             ) : !loadingReg && (
-              <div className="col-span-full p-8 text-center bg-secondary/5 rounded-2xl border border-dashed border-border text-muted-foreground text-sm font-bold italic">
-                No registered partners found in this area.
+              <div className="col-span-full p-12 text-center bg-secondary/5 rounded-[2.5rem] border-2 border-dashed border-border space-y-4">
+                <Search size={40} className="mx-auto text-muted-foreground/30" />
+                <div className="space-y-1">
+                  <h3 className="text-xl font-black">No specialists found</h3>
+                  <p className="text-sm font-medium text-muted-foreground">Try searching for a different specialty or area.</p>
+                </div>
               </div>
             )}
           </div>
@@ -339,17 +379,53 @@ export function DoctorMatch({ specialty, onBack, initialDiagnosis }: Props) {
                 <div key={i} className="h-64 rounded-[2rem] bg-secondary/20 animate-pulse border border-border" />
               ))
             ) : osmDoctors.length > 0 ? (
-              osmDoctors.map((doctor, i) => (
-                <DoctorCard 
-                  key={doctor.id} 
-                  doctor={doctor} 
-                  index={i} 
-                  onBook={(doc) => {
-                    setSelectedDoctor(doc)
-                    setIsBookingModalOpen(true)
-                  }} 
-                />
-              ))
+              <div className="col-span-full space-y-10">
+                {/* 2a. Top Matches (Specialty specific) */}
+                {osmDoctors.some((d: any) => d.isSpecialtyMatch) && (
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/5 border border-primary/10 w-fit">
+                      <Star size={14} className="text-primary fill-primary" />
+                      <span className="text-[10px] font-black uppercase tracking-widest text-primary">Top Matches for {specialty}</span>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      {osmDoctors.filter((d: any) => d.isSpecialtyMatch).map((doctor, i) => (
+                        <DoctorCard 
+                          key={doctor.id} 
+                          doctor={doctor} 
+                          index={i} 
+                          onBook={(doc) => {
+                            setSelectedDoctor(doc)
+                            setIsBookingModalOpen(true)
+                          }} 
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* 2b. General Support (Non-specialty specific) */}
+                {osmDoctors.some((d: any) => !d.isSpecialtyMatch) && (
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-secondary/50 border border-border w-fit">
+                      <Building2 size={14} className="text-muted-foreground" />
+                      <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Nearby Medical Support</span>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      {osmDoctors.filter((d: any) => !d.isSpecialtyMatch).map((doctor, i) => (
+                        <DoctorCard 
+                          key={doctor.id} 
+                          doctor={doctor} 
+                          index={i} 
+                          onBook={(doc) => {
+                            setSelectedDoctor(doc)
+                            setIsBookingModalOpen(true)
+                          }} 
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             ) : !loadingOsm && (
               <div className="col-span-full py-20 text-center space-y-4 bg-secondary/10 rounded-[3rem] border-2 border-dashed border-border">
                 <div className="w-16 h-16 bg-secondary rounded-full flex items-center justify-center mx-auto text-muted-foreground">
@@ -415,7 +491,15 @@ function DoctorCard({ doctor, index, onBook }: { doctor: Doctor, index: number, 
                 <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mt-1">{doctor.specialty}</p>
               </div>
               <div className="flex flex-col items-end gap-1">
-                <Badge variant="secondary" className="text-[9px] font-black uppercase tracking-tighter bg-primary/10 text-primary border-0">
+                <Badge 
+                  variant="secondary" 
+                  className={cn(
+                    "text-[9px] font-black uppercase tracking-tighter border-0",
+                    doctor.distance === "Online Consultation" 
+                      ? "bg-amber-500/10 text-amber-600" 
+                      : "bg-primary/10 text-primary"
+                  )}
+                >
                   {doctor.distance}
                 </Badge>
                 <span className="text-[9px] font-bold text-muted-foreground">{doctor.reviews} reviews</span>

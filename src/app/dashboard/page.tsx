@@ -15,7 +15,8 @@ import {
   Settings,
   LogOut,
   Calendar,
-  AlertCircle
+  AlertCircle,
+  CheckCircle2
 } from "lucide-react"
 import { Navbar } from "@/components/Navbar"
 import { Card } from "@/components/ui/card"
@@ -50,8 +51,9 @@ export default function PatientDashboard() {
       return
     }
 
-    // Check for incomplete profile (missing age or gender)
-    if (!userData.age || !userData.gender) {
+    // Check for incomplete profile using the dedicated flag
+    // Treat missing, null, or false as incomplete
+    if (!userData.isDetailsFilled) {
       setIsProfileIncomplete(true)
     }
 
@@ -130,13 +132,14 @@ export default function PatientDashboard() {
           </div>
 
           <div className="flex items-center gap-4">
-            <Link href="/profile-settings">
+            <Link href={isProfileIncomplete ? "/onboarding" : "/profile-settings"}>
               <Button variant="outline" className={cn(
                 "rounded-2xl h-12 px-6 border-border bg-card/50 backdrop-blur-sm font-bold text-xs tracking-widest uppercase relative",
                 isProfileIncomplete && "border-red-500/50 text-red-500 hover:text-red-600 hover:bg-red-500/5"
               )}>
                 <Settings size={18} className={cn("mr-2", isProfileIncomplete && "animate-spin-slow")} />
                 {isProfileIncomplete ? "Complete Profile" : "Profile Settings"}
+                {!isProfileIncomplete && <CheckCircle2 size={16} className="ml-2 text-emerald-500" />}
 
                 {isProfileIncomplete && (
                   <span className="absolute -top-1 -right-1 flex h-4 w-4">

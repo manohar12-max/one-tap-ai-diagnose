@@ -9,6 +9,7 @@ import { ModeToggle } from "./ModeToggle"
 import { Button } from "./ui/button"
 import { toast } from "sonner"
 import { NotificationCenter } from "./NotificationCenter"
+import { cn } from "@/lib/utils"
 
 export function Navbar() {
   const [user, setUser] = useState<any>(null)
@@ -115,9 +116,22 @@ export function Navbar() {
                 >
                   <LogOut size={14} />
                 </Button>
-                <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center text-primary text-[10px] font-black border border-primary/20 cursor-pointer hover:scale-105 transition-transform">
-                  {user.name.charAt(0)}
-                </div>
+                <Link href={user.isDetailsFilled ? "/profile-settings" : "/onboarding"} title={user.isDetailsFilled ? "Profile Settings" : "Complete Profile"}>
+                  <div className={cn(
+                    "w-7 h-7 rounded-lg flex items-center justify-center text-[10px] font-black border cursor-pointer hover:scale-105 transition-all relative",
+                    user.isDetailsFilled 
+                      ? "bg-primary/10 text-primary border-primary/20" 
+                      : "bg-red-500/10 text-red-500 border-red-500/30"
+                  )}>
+                    {user.name.charAt(0)}
+                    {!user.isDetailsFilled && (
+                      <span className="absolute -top-1 -right-1 flex h-2 w-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                      </span>
+                    )}
+                  </div>
+                </Link>
               </div>
             ) : (
               <div className="hidden sm:flex items-center gap-3">
@@ -197,14 +211,26 @@ export function Navbar() {
                      </div>
                      <NotificationCenter user={user} />
                    </div>
-                   <Button
-                    variant="destructive"
-                    className="w-full h-12 rounded-2xl font-black text-xs uppercase tracking-widest gap-2"
-                    onClick={handleLogout}
-                  >
-                    <LogOut size={16} />
-                    Logout
-                  </Button>
+                    <Link href={user.isDetailsFilled ? "/profile-settings" : "/onboarding"} className="block">
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full h-12 rounded-2xl font-black text-xs uppercase tracking-widest gap-2 border-border",
+                          !user.isDetailsFilled && "border-red-500/50 text-red-500 hover:text-red-600 hover:bg-red-500/5"
+                        )}
+                      >
+                        <User size={16} className={cn(!user.isDetailsFilled && "animate-pulse")} />
+                        {user.isDetailsFilled ? "Profile Settings" : "Complete Profile"}
+                      </Button>
+                    </Link>
+                    <Button
+                      variant="destructive"
+                      className="w-full h-12 rounded-2xl font-black text-xs uppercase tracking-widest gap-2"
+                      onClick={handleLogout}
+                    >
+                      <LogOut size={16} />
+                      Logout
+                    </Button>
                 </div>
               )}
             </div>

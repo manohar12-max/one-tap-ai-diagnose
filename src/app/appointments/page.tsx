@@ -212,7 +212,7 @@ function AppointmentsContent() {
                           <div className="flex items-center gap-5">
                             <div className="w-16 h-16 rounded-2xl bg-secondary overflow-hidden shadow-inner border border-border group-hover:scale-105 transition-transform">
                               <img
-                                src={app.doctor?.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${app.doctor?.name}`}
+                                src={app.doctor?.image || `https://api.dicebear.com/7.x/notionists/svg?seed=${app.doctor?.name}`}
                                 alt={app.doctor?.name}
                                 className="w-full h-full object-cover"
                               />

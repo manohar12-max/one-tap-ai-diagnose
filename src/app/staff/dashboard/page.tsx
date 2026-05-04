@@ -12,10 +12,14 @@ import {
   ArrowUpRight,
   AlertCircle,
   MessageSquare,
-  ChevronRight
+  ChevronRight,
+  Settings,
+  CheckCircle2
 } from "lucide-react"
+import { cn } from "@/lib/utils"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { getSocket } from "@/lib/socket"
 import Link from "next/link"
 
@@ -101,9 +105,30 @@ export default function StaffDashboardPage() {
             Welcome back, {user?.role === 'DOCTOR' ? 'Dr. ' : ''}{user?.name || 'Staff Member'}
           </p>
         </div>
-        <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] bg-secondary/50 px-4 py-2 rounded-full border border-border">
-          <Activity size={14} className="text-primary animate-pulse" />
-          Real-time Engine Active
+        <div className="flex items-center gap-4">
+          <Link href={user?.isDetailsFilled ? "/staff/settings" : "/onboarding"}>
+            <Button variant="outline" className={cn(
+              "rounded-2xl h-12 px-6 border-border bg-card/50 backdrop-blur-sm font-bold text-xs tracking-widest uppercase relative",
+              !user?.isDetailsFilled && "border-red-500/50 text-red-500 hover:text-red-600 hover:bg-red-500/5"
+            )}>
+              <Settings size={18} className={cn("mr-2", !user?.isDetailsFilled && "animate-spin-slow")} />
+              {user?.isDetailsFilled ? "Profile Settings" : "Complete Profile"}
+              {user?.isDetailsFilled && <CheckCircle2 size={16} className="ml-2 text-emerald-500" />}
+              
+              {!user?.isDetailsFilled && (
+                <span className="absolute -top-1 -right-1 flex h-4 w-4">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-4 w-4 bg-red-500 items-center justify-center">
+                    <AlertCircle size={10} className="text-white" />
+                  </span>
+                </span>
+              )}
+            </Button>
+          </Link>
+          <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] bg-secondary/50 px-4 py-2 rounded-full border border-border">
+            <Activity size={14} className="text-primary animate-pulse" />
+            Real-time Engine Active
+          </div>
         </div>
       </div>
 

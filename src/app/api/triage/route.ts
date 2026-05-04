@@ -72,11 +72,8 @@ export async function POST(req: Request) {
     const result = await streamObject({
       model: model,
       schema: diagnosisSchema,
+      system: DIAGNOSIS_SYSTEM_PROMPT + (sessionId ? `\n\nIMPORTANT: You MUST include this sessionId in your JSON response: ${sessionId}` : ""),
       messages: [
-        {
-          role: "system",
-          content: DIAGNOSIS_SYSTEM_PROMPT + (sessionId ? `\n\nIMPORTANT: You MUST include this sessionId in your JSON response: ${sessionId}` : ""),
-        },
         {
           role: "user",
           content: [

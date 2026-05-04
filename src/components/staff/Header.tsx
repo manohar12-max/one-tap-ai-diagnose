@@ -71,9 +71,12 @@ export function StaffHeader({ onToggleSidebar }: { onToggleSidebar?: () => void 
           <DropdownMenuContent align="end" className="w-56 mt-2 rounded-2xl bg-card/80 backdrop-blur-xl border-border p-2">
             <DropdownMenuLabel className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground">My Account</DropdownMenuLabel>
             <DropdownMenuSeparator className="bg-border/50" />
-            <DropdownMenuItem className="rounded-xl px-3 py-2.5 font-bold text-sm cursor-pointer hover:bg-primary/10 hover:text-primary transition-colors gap-2">
+            <DropdownMenuItem 
+              onClick={() => window.location.href = user?.isDetailsFilled ? "/staff/settings" : "/onboarding"}
+              className="rounded-xl px-3 py-2.5 font-bold text-sm cursor-pointer hover:bg-primary/10 hover:text-primary transition-colors gap-2"
+            >
               <UserIcon size={16} />
-              Profile Settings
+              {user?.isDetailsFilled ? "Profile Settings" : "Complete Profile"}
             </DropdownMenuItem>
             <DropdownMenuItem className="rounded-xl px-3 py-2.5 font-bold text-sm cursor-pointer hover:bg-primary/10 hover:text-primary transition-colors gap-2">
               <Settings size={16} />

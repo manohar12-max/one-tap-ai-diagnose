@@ -21,7 +21,7 @@ async function handleRequest(params: any) {
   let debugInfo: any = { status: "started" }
   try {
     let { city, lat, lng, specialty } = params
-    
+
     // Check if user is searching for "their location" without specific coordinates
     const isGenericLocation = city && /your location|current location|my location/i.test(city);
 
@@ -56,7 +56,7 @@ async function handleRequest(params: any) {
     if (lat && lng) {
       // Normalize specialty for better matching (e.g., "Cardiology" -> "cardio")
       const specSearch = specialty ? specialty.toLowerCase().substring(0, 6) : ""
-      
+
       // Construct a more targeted query
       // First attempt: Try to find specifically the specialty
       // Second attempt (fallback within query): General doctors/clinics
@@ -68,7 +68,7 @@ async function handleRequest(params: any) {
         nwr(around:15000,${lat},${lng})["healthcare"~"doctor|clinic|hospital"];
       );
       out center 50;` // Limit to 50 results for speed
-      
+
       for (const mirror of OVERPASS_MIRRORS) {
         try {
           console.log(`Trying mirror: ${mirror} for specialty: ${specialty}`)
@@ -76,21 +76,26 @@ async function handleRequest(params: any) {
             signal: AbortSignal.timeout(15000), // Increased timeout
             headers: { 'User-Agent': 'OneTapAI/3.0' }
           })
-          
+
           if (osmRes.ok) {
             const osmData = await osmRes.json()
             debugInfo.mirrorUsed = mirror
             debugInfo.elementsFound = osmData.elements?.length || 0
-            
+
             if (osmData.elements && osmData.elements.length > 0) {
               doctors = osmData.elements.map((el: any) => {
                 const tags = el.tags || {}
                 // Better specialty extraction
-                const extractedSpecialty = tags.speciality || 
-                                         tags["healthcare:speciality"] || 
-                                         tags.description || 
-                                         tags.amenity?.toUpperCase() || 
-                                         "Specialist"
+                const extractedSpecialty = tags.speciality ||
+                  tags["healthcare:speciality"] ||
+                  tags.description ||
+                  tags.amenity?.toUpperCase() ||
+                  "Specialist"
+
+                const isSpecialtyMatch = specSearch && (
+                  extractedSpecialty.toLowerCase().includes(specSearch) ||
+                  (tags.name && tags.name.toLowerCase().includes(specSearch))
+                );
 
                 return {
                   id: `osm-${el.id}`,
@@ -100,15 +105,16 @@ async function handleRequest(params: any) {
                   reviews: Math.floor(Math.random() * 20) + 5,
                   location: tags["addr:full"] || tags["addr:street"] || city || "Nearby",
                   distance: "Nearby",
-                  image: `https://api.dicebear.com/7.x/initials/svg?seed=${tags.name || "Clinic"}`,
+                  image: `https://api.dicebear.com/7.x/notionists/svg?seed=${tags.name || "Clinic"}`,
                   // Fix: Ensure tags are unique to prevent React key collisions
-                  tags: Array.from(new Set(["Verified", tags.amenity, tags.healthcare].filter(Boolean))),
+                  tags: Array.from(new Set(["Verified", tags.amenity, tags.healthcare, isSpecialtyMatch ? "Expert Match" : null].filter(Boolean))),
                   isRegistered: false,
+                  isSpecialtyMatch: !!isSpecialtyMatch,
                   lat: el.lat || el.center?.lat,
                   lng: el.lon || el.center?.lng
                 }
               })
-              break; 
+              break;
             }
           }
         } catch (mirrorErr: any) {
