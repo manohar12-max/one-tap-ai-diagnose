@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
 import { 
   History, 
@@ -29,7 +30,15 @@ export default function ClinicalHistoryPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [search, setSearch] = useState("")
 
+  const router = useRouter()
+
   useEffect(() => {
+    const userData = JSON.parse(localStorage.getItem("user") || "{}")
+    if (userData.role === 'DOCTOR' || userData.role === 'ADMIN') {
+      router.push("/staff/dashboard")
+      return
+    }
+
     const fetchHistory = async () => {
       try {
         const res = await fetch("/api/history")

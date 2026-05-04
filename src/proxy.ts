@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 
-export function proxy(request: NextRequest) {
+export default function proxy(request: NextRequest) {
   const token = request.cookies.get("token")?.value
+  const role = request.cookies.get("role")?.value
   const { pathname } = request.nextUrl
 
   // Define public routes that don't need auth
@@ -14,7 +15,6 @@ export function proxy(request: NextRequest) {
     pathname.startsWith("/_next") ||
     pathname.includes(".") // Static files
 
-  // If not authenticated and trying to access a private route, redirect to login
   if (!token && !isPublicRoute) {
     const url = request.nextUrl.clone()
     url.pathname = "/login"
@@ -22,17 +22,28 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  // If authenticated and trying to access login/register, redirect to appropriate dashboard
   if (token && (pathname === "/login" || pathname === "/register")) {
-    const role = request.cookies.get("role")?.value
     const url = request.nextUrl.clone()
-    
     if (role === "DOCTOR" || role === "ADMIN") {
       url.pathname = "/staff/dashboard"
     } else {
       url.pathname = "/dashboard"
     }
-    
+    return NextResponse.redirect(url)
+  }
+
+  const patientOnlyRoutes = ["/dashboard", "/doctors", "/appointments", "/history", "/diagnose", "/profile-settings", "/onboarding"]
+  const isPatientRoute = patientOnlyRoutes.some(route => pathname === route || pathname.startsWith(route + "/"))
+  
+  if (token && isPatientRoute && (role === "DOCTOR" || role === "ADMIN")) {
+    const url = request.nextUrl.clone()
+    url.pathname = "/staff/dashboard"
+    return NextResponse.redirect(url)
+  }
+
+  if (token && pathname.startsWith("/staff") && role !== "DOCTOR" && role !== "ADMIN") {
+    const url = request.nextUrl.clone()
+    url.pathname = "/dashboard"
     return NextResponse.redirect(url)
   }
 

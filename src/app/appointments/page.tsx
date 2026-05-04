@@ -27,7 +27,7 @@ import { ChatInterface } from "@/components/appointments/ChatInterface"
 import { combineDateTime } from "@/lib/utils/date"
 import { cn } from "@/lib/utils"
 
-import { useSearchParams } from "next/navigation"
+import { useSearchParams, useRouter } from "next/navigation"
 
 function AppointmentsContent() {
   const [appointments, setAppointments] = useState<any[]>([])
@@ -37,6 +37,7 @@ function AppointmentsContent() {
   const [isDetailsOpen, setIsDetailsOpen] = useState(false)
   const [currentUser, setCurrentUser] = useState<any>(null)
   const searchParams = useSearchParams()
+  const router = useRouter()
   const targetId = searchParams ? searchParams.get("id") : null
 
 
@@ -46,6 +47,11 @@ function AppointmentsContent() {
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user") || "{}")
+    if (user.role === 'DOCTOR' || user.role === 'ADMIN') {
+      router.push("/staff/dashboard")
+      return
+    }
+
     setCurrentUser(user)
     fetchAppointments()
   }, [])
@@ -206,7 +212,7 @@ function AppointmentsContent() {
                           <div className="flex items-center gap-5">
                             <div className="w-16 h-16 rounded-2xl bg-secondary overflow-hidden shadow-inner border border-border group-hover:scale-105 transition-transform">
                               <img
-                                src={app.doctor?.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${app.doctor?.name}`}
+                                src={app.doctor?.image || `https://api.dicebear.com/7.x/notionists/svg?seed=${app.doctor?.name}`}
                                 alt={app.doctor?.name}
                                 className="w-full h-full object-cover"
                               />

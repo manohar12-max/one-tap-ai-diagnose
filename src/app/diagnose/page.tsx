@@ -4,8 +4,19 @@ import { Navbar } from "../../components/Navbar"
 import { DiagnosisWizard } from "@/components/patient/DiagnosisWizard"
 import { motion } from "framer-motion"
 import { ShieldCheck, Brain, Activity } from "lucide-react"
+import { useEffect } from "react"
+import { useRouter } from "next/navigation"
 
 export default function TriagePage() {
+  const router = useRouter()
+
+  useEffect(() => {
+    const userData = JSON.parse(localStorage.getItem("user") || "{}")
+    if (userData.role === 'DOCTOR' || userData.role === 'ADMIN') {
+      router.push("/staff/dashboard")
+    }
+  }, [router])
+
   return (
     <div className="min-h-screen bg-transparent relative pb-20">
       <Navbar />

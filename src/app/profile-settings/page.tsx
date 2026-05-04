@@ -136,9 +136,15 @@ export default function ProfileSettingsPage() {
       })
 
       if (res.ok) {
+        const data = await res.json()
         toast.success("Profile Updated!", {
           description: "Proceeding to your dashboard.",
         })
+        
+        // Update local user state
+        const updatedUser = { ...user, isDetailsFilled: true };
+        localStorage.setItem("user", JSON.stringify(updatedUser));
+        
         router.push("/dashboard")
       } else {
         const data = await res.json()

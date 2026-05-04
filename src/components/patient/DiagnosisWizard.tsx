@@ -89,6 +89,14 @@ export function DiagnosisWizard() {
       if (object?.sessionId) setSessionId(object.sessionId)
       setDiagnosisResult(object)
       setIsProcessing(false)
+    },
+    onError: (error) => {
+      console.error("Diagnosis Synthesis Error:", error)
+      setIsProcessing(false)
+      toast.error("Clinical AI Engine Unavailable", {
+        description: "The AI model is currently experiencing high demand. Please wait a few moments and try again.",
+        duration: 8000
+      })
     }
   })
 

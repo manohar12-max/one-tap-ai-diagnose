@@ -18,6 +18,13 @@ export function PulseInput() {
   const { object, submit, isLoading } = useObject({
     api: "/api/triage",
     schema: triageSchema,
+    onError: (error) => {
+      console.error("Pulse Triage Error:", error)
+      toast.error("AI Service Busy", {
+        description: "High demand detected. Our clinical engine is cooling down. Please retry in 30 seconds.",
+        duration: 6000
+      })
+    }
   })
 
   const handleAction = () => {
